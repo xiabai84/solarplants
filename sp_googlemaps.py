@@ -7,10 +7,6 @@ from PIL import Image
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 
 
-def build_address(street, streetnumber, city, postal_code):
-    return '%s %s, %s %s' % street, streetnumber, postal_code, city
-
-
 def build_google_api_url(**kwargs):
     # Default values for API call
     options = {
