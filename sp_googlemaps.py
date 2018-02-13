@@ -1,5 +1,6 @@
 import numpy as np
 import requests
+import urllib.parse
 import datetime
 from io import BytesIO
 from PIL import Image
@@ -19,13 +20,7 @@ def build_google_api_url(**kwargs):
     if 'center' not in options:
         raise TypeError("Missing required argument: 'center'")
 
-    first_arg = True
-    url = BASE_URL
-    for key in options:
-        if not first_arg:
-            url += '&'
-        url += key + '=' + str(options[key])
-        first_arg = False
+    url = BASE_URL + urllib.parse.urlencode(options)
 
     return url
 
@@ -34,7 +29,6 @@ def download_satellite_image(address, image_size=300, crop_size=25, **kwargs):
     """
 
     :param address: A street address or GPS coordinates that will be passed to Google Maps.
-        Suggestion: use build_address()
     :param image_size: Square image of image_size x image_size will be created
     :param crop_size: Use this to remove Google Copyright notices. Will be added to the
         top and bottom of the image for the Google API call, but removed before saving.
