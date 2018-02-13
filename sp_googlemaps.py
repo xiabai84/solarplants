@@ -9,6 +9,18 @@ BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 
 
 def build_google_api_url(**kwargs):
+    """
+
+    :param \**kwargs: see below
+        :param \**kwargs:
+        See below
+
+    :Keyword Arguments:
+        * *center* (``string``) --
+           A street address or GPS coordinates that will be passed to Google Maps
+
+    :return: ``string`` Full URL to the Google Maps Static API call
+    """
     # Default values for API call
     options = {
             'size': '300x350',
@@ -25,10 +37,11 @@ def build_google_api_url(**kwargs):
     return url
 
 
-def download_satellite_image(address, image_size=300, crop_size=25, **kwargs):
+def download_satellite_image(address, output_folder='', image_size=300, crop_size=25, **kwargs):
     """
 
     :param address: A street address or GPS coordinates that will be passed to Google Maps.
+    :param output_folder: folder path where image will be saved
     :param image_size: Square image of image_size x image_size will be created
     :param crop_size: Use this to remove Google Copyright notices. Will be added to the
         top and bottom of the image for the Google API call, but removed before saving.
@@ -41,9 +54,13 @@ def download_satellite_image(address, image_size=300, crop_size=25, **kwargs):
     image_req = requests.get(url)
 
     if image_req.raw.status != 200:
+        msg_for_403 = ''
+        if image_req.raw.status == 403 and 'key' not in kwargs:
+            msg_for_403 = '\nTo avoid error 403 supply your API key.'
         raise Exception(
             'HTTP Request failed with code {}, reason "{}"'
             .format(image_req.raw.status, image_req.raw.reason)
+            + msg_for_403
         )
 
     expected_content_type = 'image/png'
@@ -52,14 +69,16 @@ def download_satellite_image(address, image_size=300, crop_size=25, **kwargs):
                         .format(expected_content_type, image_req.headers['Content-Type']))
 
     now = datetime.datetime.now()
-    image_filename = '{}-{}-{}_{}-{}-{} {}.png'\
+    image_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2}-{:0>2} {}.png'\
         .format(now.year, now.month, now.day, now.hour, now.minute, now.second, hash(address))
     print(image_filename)
 
+    if output_folder and output_folder[-1] != '/':
+        output_folder += '/'
     image = Image.open(BytesIO(image_req.content))
     image_box = image.getbbox()
     image = image.crop((image_box[0],
                         image_box[1]+crop_size,
                         image_box[2],
                         image_box[3]-crop_size))
-    image.save(image_filename)
+    image.save(output_folder + image_filename)
