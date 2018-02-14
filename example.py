@@ -14,7 +14,7 @@ if __name__ == "__main__":
     _ = file.readline()
 
     # To resume an aborted download run, enter number of images to skip
-    skip_first = 250
+    skip_first = 0
     for line in file.readlines():
         (postal_code, city, street) = line.strip().split(';')
         for house_number in range(1,11):
