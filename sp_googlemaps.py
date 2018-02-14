@@ -1,11 +1,18 @@
 import numpy as np
 import requests
+from requests.packages.urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 import urllib.parse
 import datetime
 from io import BytesIO
 from PIL import Image
 
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
+
+# Retry image download if Google throws a 500 internal error
+retries = Retry(total=3,
+                backoff_factor=0.5,
+                status_forcelist=[500, 502, 503, 504])
 
 
 def build_google_api_url(**kwargs):
@@ -51,7 +58,12 @@ def download_satellite_image(address, output_folder='', image_size=300, crop_siz
     image_height = image_size + 2*crop_size
     image_width = image_size
     url = build_google_api_url(center=address, size='{}x{}'.format(image_width, image_height), **kwargs)
-    image_req = requests.get(url)
+
+    # Use session for retries, see stackoverflow post:
+    # https://stackoverflow.com/questions/15431044/can-i-set-max-retries-for-requests-request
+    dl_session = requests.Session()
+    dl_session.mount('https://', HTTPAdapter(max_retries=retries))
+    image_req = dl_session.get(url)
 
     if image_req.raw.status != 200:
         msg_for_403 = ''
