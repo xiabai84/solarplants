@@ -19,14 +19,16 @@ if __name__ == "__main__":
     results_file = open('{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} filenames.csv'
                         .format(now.year, now.month, now.day, now.hour, now.minute),
                         'w')
-    results_file.write('Filename;Solarplant')
+    results_file.write('Filename,Solarplant\n')
 
     for line in address_file.readlines():
-        (postal_code, city, street, starting_street_number) = line.strip().split(';')
+        if not line.strip():
+            continue
+        (postal_code, city, street, starting_street_number) = line.strip().split(',')
 
         street_numbers_found = 0
         street_numbers_skipped = 0
-        street_number = starting_street_number
+        street_number = int(starting_street_number)
 
         while street_numbers_found < 10 and street_numbers_skipped < 20:
             address = "{} {}, {} {}".format(street, street_number, postal_code, city)
@@ -34,9 +36,10 @@ if __name__ == "__main__":
                 filename = sp_googlemaps.download_satellite_image(address, 'images', 'images/thumbs', key=api_key)
                 street_numbers_found += 1
 
-                results_file.write(filename+';')
+                results_file.write(filename+',\n')
             else:
                 street_numbers_skipped += 1
             street_number += 1
 
     address_file.close()
+    results_file.close()
