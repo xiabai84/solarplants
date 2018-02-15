@@ -85,7 +85,7 @@ def download_satellite_image(address, output_folder='', thumbnail_folder='', ima
         the output image of thumbnail_size x thumbnail_size pixels
     :param thumbnail_prefix: a string that will be prepended to each thumbnail's filename
     :param kwargs: additional arguments passed to the Google Maps API call
-    :return: None
+    :return: (str) filename of the saved image (without folder)
     """
 
     image_height = image_size + 2*crop_size
@@ -140,3 +140,5 @@ def download_satellite_image(address, output_folder='', thumbnail_folder='', ima
             thumbnail_folder = output_folder
 
         image.save(thumbnail_folder + thumbnail_prefix + image_filename)
+
+    return image_filename
