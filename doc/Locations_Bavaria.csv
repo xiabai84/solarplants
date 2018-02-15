@@ -1,25 +1,25 @@
-PLZ;Ort;Strasse
-87499;Wildpoldsried;Marktoberdorfer Straße
-87499;Wildpoldsried;Salzstraße
-87499;Wildpoldsried;Auf dem G'hau
-87499;Wildpoldsried;Bahnhofstraße
-87499;Wildpoldsried;Grüntenstraße
-87499;Wildpoldsried;Günzacher Straße
-87499;Wildpoldsried;Cypriansstraße
-82266;Inning;Hirtenweg
-82266;Inning;Zweigstraße
-82266;Inning;Stegner Weg
-82266;Inning;Am Kastenacker
-95485;Warmensteinach ;Kirchweg
-95485;Warmensteinach ;Gablonzer Straße
-95485;Warmensteinach ;Obere Alte Poststraße
-95485;Warmensteinach ;Sudetenstraße
-63879;Weibersbrunn;Am Ausblick
-63879;Weibersbrunn;Am Eichwald
-63879;Weibersbrunn;Hauptstraße
-63879;Weibersbrunn;Pfarrweg
-81739;München;Rübezahlstraße
-81739;München;Lavaterstraße
-81739;München;Matthissonstraße
-81739;München;Waldperlacher Straße
-81739;München;Am Bauernwald
+PLZ,Ort,Strasse,Erste Hausnummer
+87499,Wildpoldsried,Marktoberdorfer StraÃŸe,1
+87499,Wildpoldsried,SalzstraÃŸe,1
+87499,Wildpoldsried,Auf dem G'hau,1
+87499,Wildpoldsried,BahnhofstraÃŸe,1
+87499,Wildpoldsried,GrÃ¼ntenstraÃŸe,1
+87499,Wildpoldsried,GÃ¼nzacher StraÃŸe,1
+87499,Wildpoldsried,CypriansstraÃŸe,1
+82266,Inning,Hirtenweg,1
+82266,Inning,ZweigstraÃŸe,1
+82266,Inning,Stegner Weg,1
+82266,Inning,Am Kastenacker,1
+95485,Warmensteinach ,Kirchweg,1
+95485,Warmensteinach ,Gablonzer StraÃŸe,1
+95485,Warmensteinach ,Obere Alte PoststraÃŸe,1
+95485,Warmensteinach ,SudetenstraÃŸe,1
+63879,Weibersbrunn,Am Ausblick,1
+63879,Weibersbrunn,Am Eichwald,1
+63879,Weibersbrunn,HauptstraÃŸe,1
+63879,Weibersbrunn,Pfarrweg,1
+81739,MÃ¼nchen,RÃ¼bezahlstraÃŸe,1
+81739,MÃ¼nchen,LavaterstraÃŸe,1
+81739,MÃ¼nchen,MatthissonstraÃŸe,1
+81739,MÃ¼nchen,Waldperlacher StraÃŸe,1
+81739,MÃ¼nchen,Am Bauernwald,1
