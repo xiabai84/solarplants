@@ -64,9 +64,20 @@ def check_address_existence(address, street_number_used, key=''):
     address_data = json.loads(address_req.text)
 
     # Google Geocode only returns the street number if it actually exists
-    for address_component in address_data['results'][0]['address_components']:
-        if 'street_number' in address_component['types'] and address_component['short_name'] == street_number_used:
-            return True
+    try:
+        if address_data["status"] != "OK":
+            print("Google Geocoding Error, status: " + address_data["status"])
+            print("Address: " + address)
+            return False
+
+        for address_component in address_data['results'][0]['address_components']:
+            if 'street_number' in address_component['types'] and address_component['short_name'] == street_number_used:
+                return True
+    except IndexError:
+        print("IndexError for JSON processing, address " + address)
+        print(address_req.text)
+        raise IndexError("JSON processing failed, address " + address)
+        #return False
 
     return False
 
