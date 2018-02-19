@@ -10,7 +10,6 @@ def md5sum(filename):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-# TODO: check for duplicates in sp_googlemaps.download_satellite_image()
 
 if __name__ == "__main__":
     folder = "images/Lennart/"

@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     #address_file = open('doc/Locations_L.csv', 'r')
     #address_file = open('doc/Locations_Matthias.csv', 'r')
-    address_file = open('doc/Locations_Bavaria.csv', 'r')
+    address_file = open('doc/Locations_Lennart.csv', 'r')
     # Get rid of header:
     _ = address_file.readline()
 
@@ -21,6 +21,7 @@ if __name__ == "__main__":
                         'w')
     results_file.write('Filename,Solarplant\n')
 
+    maps_downloader = sp_googlemaps.DownloadSession(api_key, 'images/test')
     for line in address_file.readlines():
         if not line.strip():
             continue
@@ -30,13 +31,15 @@ if __name__ == "__main__":
         street_numbers_skipped = 0
         street_number = int(starting_street_number)
 
-        while street_numbers_found < 10 and street_numbers_skipped < 20:
+        while street_numbers_found < 20 and street_numbers_skipped < 20:
             address = "{} {}, {} {}".format(street, street_number, postal_code, city)
-            if sp_googlemaps.check_address_existence(address, str(street_number), api_key):
-                filename = sp_googlemaps.download_satellite_image(address, 'images', 'images/thumbs', key=api_key)
+            if maps_downloader.check_address_existence(address, str(street_number)):
+                filename = maps_downloader.download_satellite_image(address)
                 street_numbers_found += 1
 
-                results_file.write(filename+',\n')
+                # for duplicates, filename will be empty
+                if filename:
+                    results_file.write(filename+',\n')
             else:
                 street_numbers_skipped += 1
             street_number += 1
