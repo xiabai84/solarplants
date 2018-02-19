@@ -34,14 +34,17 @@ class DownloadSession:
                              backoff_factor=0.5,
                              status_forcelist=[500, 502, 503, 504])
 
+
+        self.api_key = api_key
+
         # Default values for API call
         self.maps_api_options = {
                 'size': '300x350',
                 'zoom': '20',
                 'maptype': 'satellite',
-                'format': 'png32', }
-
-        self.api_key = api_key
+                'format': 'png32',
+                'key': api_key,
+        }
 
         self.hash_sums = dict()
         self.hash_method = hashlib.md5
