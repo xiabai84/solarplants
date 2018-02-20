@@ -7,6 +7,7 @@ import datetime
 from io import BytesIO
 import PIL
 from PIL import Image
+import imageio
 import json
 import re
 import hashlib
@@ -189,3 +190,18 @@ class DownloadSession:
             image.save(os.path.join(self.thumbs_folder, self.thumbnail_prefix + image_filename))
 
         return image_filename
+
+
+def load_data(filenames_csv, folder, image_size):
+    filenames = [f.split(',') for f in open(filenames_csv).readlines()[1:]]
+    filenames = [(f[0],int(f[1])) for f in filenames if f[1] != '2']
+
+    images_x = np.ndarray((len(filenames), image_size, image_size, 3), dtype='float32')
+    images_y = np.ndarray((len(filenames),), dtype=bool)
+    for i,f in enumerate(filenames):
+        filename = os.path.join(folder, f[0])
+        image = imageio.imread(filename).astype('float32')
+        images_x[i][:][:][:] = image / 255.
+        images_y[i] = bool(f[1])
+
+    return images_x, images_y
