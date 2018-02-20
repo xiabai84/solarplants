@@ -17,9 +17,9 @@ img_x, img_y = 50, 50
 
 # reshape the data into a 4D tensor - (sample_number, x_img_size, y_img_size, num_channels)
 # because the MNIST is greyscale, we only have a single channel - RGB colour images would have 3
-x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 1)
-x_test = x_test.reshape(x_test.shape[0], img_x, img_y, 1)
-input_shape = (img_x, img_y, 1)
+x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
+x_test = x_test.reshape(x_test.shape[0], img_x, img_y, 3)
+input_shape = (img_x, img_y, 3)
 
 # convert the data to the right type
 x_train = x_train.astype('float32')
@@ -51,25 +51,15 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               metrics=['accuracy'])
 
 
-class AccuracyHistory(keras.callbacks.Callback):
-    def on_train_begin(self, logs={}):
-        self.acc = []
-
-    def on_epoch_end(self, batch, logs={}):
-        self.acc.append(logs.get('acc'))
-
-history = AccuracyHistory()
-
 model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_data=(x_test, y_test),
-          callbacks=[history])
+          validation_data=(x_test, y_test))
 score = model.evaluate(x_test, y_test, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
-plt.plot(range(1, 11), history.acc)
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.show()
+# plt.plot(range(1, 11), history.acc)
+# plt.xlabel('Epochs')
+# plt.ylabel('Accuracy')
+# plt.show()
