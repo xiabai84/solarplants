@@ -7,23 +7,25 @@ import sp_googlemaps
 
 batch_size = 64 # 128
 num_classes = 2
-epochs = 10
+epochs = 30
 
 # input image dimensions
 image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
 # load the MNIST data set, which already splits into train and test sets for us
-x_all, y_all = sp_googlemaps.load_data('2018-02-20_16-42 filenames.csv', 'images/thumbs', 50)
+x_all, y_all = sp_googlemaps.load_data('test_filenames.csv', 'images/test', 50)
 
-# use 1 picture as validation and test
-x_validation = x_all[0:1][:][:][:]
-y_validation = y_all[0:1]
-x_test = x_all[1:2][:][:][:]
-y_test = y_all[1:2]
+# use n pictures as validation and test
+test_samples = int(5)
+validation_samples = int(20)
+x_validation = x_all[0:validation_samples][:][:][:]
+y_validation = y_all[0:validation_samples]
+x_test = x_all[validation_samples:(validation_samples+test_samples)][:][:][:]
+y_test = y_all[validation_samples:(validation_samples+test_samples)]
 
-x_train = x_all[2:][:][:][:]
-y_train = y_all[2:]
+x_train = x_all[(validation_samples+test_samples):][:][:][:]
+y_train = y_all[(validation_samples+test_samples):]
 
 input_shape = (img_x, img_y, 3)
 
