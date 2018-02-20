@@ -185,6 +185,7 @@ class DownloadSession:
 
         if self.thumbnail_size > 0:
             image = image.resize((self.thumbnail_size, self.thumbnail_size), resample=PIL.Image.LANCZOS)
+            image = image.convert('RGB')
             image.save(os.path.join(self.thumbs_folder, self.thumbnail_prefix + image_filename))
 
         return image_filename
