@@ -201,6 +201,9 @@ def load_data(filenames_csv, folder, image_size):
     for i,f in enumerate(filenames):
         filename = os.path.join(folder, f[0])
         image = imageio.imread(filename).astype('float32')
+        # add :3 in last index for RGBA images
+        if image.shape[2] == 4:
+            image = image[:, :, :3]
         images_x[i][:][:][:] = image / 255.
         images_y[i] = bool(f[1])
 
