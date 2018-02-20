@@ -175,6 +175,7 @@ class DownloadSession:
             self.hash_sums[hash_value] = image_filename
 
         image = Image.open(BytesIO(image_req.content))
+        image = image.convert('RGB')
         image_box = image.getbbox()
         image = image.crop((image_box[0],
                             image_box[1]+self.crop_size,
@@ -185,7 +186,6 @@ class DownloadSession:
 
         if self.thumbnail_size > 0:
             image = image.resize((self.thumbnail_size, self.thumbnail_size), resample=PIL.Image.LANCZOS)
-            image = image.convert('RGB')
             image.save(os.path.join(self.thumbs_folder, self.thumbnail_prefix + image_filename))
 
         return image_filename
