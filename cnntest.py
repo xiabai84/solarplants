@@ -68,9 +68,9 @@ model.fit(x_train, y_train,
           validation_split=0.1,
           #validation_data=(x_validation, y_validation)
           )
-score = model.evaluate(x_validation, y_validation, verbose=0)
-print('Validation loss:', score[0])
-print('Validation accuracy:', score[1])
+#score = model.evaluate(x_validation, y_validation, verbose=0)
+#print('Validation loss:', score[0])
+#print('Validation accuracy:', score[1])
 # plt.plot(range(1, 11), history.acc)
 # plt.xlabel('Epochs')
 # plt.ylabel('Accuracy')
