@@ -3,3 +3,5 @@ images/
 googleapikey.txt
 **/.DS_Store
 .DS_Store
+Label_Tool/*.csv
+!Label_Tool/Images/001/.gitignore
