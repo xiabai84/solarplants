@@ -276,9 +276,7 @@ class LabelTool():
     def nextImageT(self, event = None):
         #self.saveImage()
         with open('labels.csv', 'a') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',')
-            spamwriter.writerow([self.imageList[self.cur-1],1])
-        csvfile.close()
+            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), 1]) + '\n')
         if self.cur < self.total:
             self.cur += 1
             self.loadImage()
@@ -286,9 +284,7 @@ class LabelTool():
     def nextImageF(self, event = None):
         #self.saveImage()
         with open('labels.csv', 'a') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',')
-            spamwriter.writerow([self.imageList[self.cur-1],0])
-        csvfile.close()
+            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), 0]) + '\n')
         if self.cur < self.total:
             self.cur += 1
             self.loadImage()
@@ -296,9 +292,7 @@ class LabelTool():
     def nextImageU(self, event = None):
         #self.saveImage()
         with open('labels.csv', 'a') as csvfile:
-            spamwriter = csv.writer(csvfile, delimiter=',')
-            spamwriter.writerow([self.imageList[self.cur-1],2])
-        csvfile.close()
+            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), 2]) + '\n')
         #self.writeToFile(self.imageList[self.cur],2)
         if self.cur < self.total:
             self.cur += 1
