@@ -14,11 +14,11 @@ image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
 # load the MNIST data set, which already splits into train and test sets for us
-x_all, y_all = sp_googlemaps.load_data('test_filenames.csv', 'images/test', 50)
+x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l.csv', 'images/thumbs', 50, skip_headline=False)
 
 # use n pictures as validation and test
-test_samples = int(5)
-validation_samples = int(20)
+test_samples = int(1)
+validation_samples = int(100)
 x_validation = x_all[0:validation_samples][:][:][:]
 y_validation = y_all[0:validation_samples]
 x_test = x_all[validation_samples:(validation_samples+test_samples)][:][:][:]

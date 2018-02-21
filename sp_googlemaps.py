@@ -192,8 +192,17 @@ class DownloadSession:
         return image_filename
 
 
-def load_data(filenames_csv, folder, image_size):
-    filenames = [f.split(',') for f in open(filenames_csv).readlines()[1:]]
+def load_data(filenames_csv, folder, image_size, **kwargs):
+
+    options = {
+        'skip_headline': True
+    }
+    options.update(kwargs)
+
+    first_line_index = 0
+    if options['skip_headline']:
+        first_line_index = 1
+    filenames = [f.split(',') for f in open(filenames_csv).readlines()[first_line_index:] if f.strip()]
     filenames = [(f[0],int(f[1])) for f in filenames if f[1] != '2']
 
     images_x = np.ndarray((len(filenames), image_size, image_size, 3), dtype='float32')
