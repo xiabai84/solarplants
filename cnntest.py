@@ -14,11 +14,11 @@ image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
 # load the MNIST data set, which already splits into train and test sets for us
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l.csv', 'images/thumbs', 50, skip_headline=False)
+x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l.csv', 'images/thumbs', image_pixels, skip_headline=False)
 
 # use n pictures as validation and test
-test_samples = int(1)
-validation_samples = int(100)
+test_samples = int(0)
+validation_samples = int(0)
 x_validation = x_all[0:validation_samples][:][:][:]
 y_validation = y_all[0:validation_samples]
 x_test = x_all[validation_samples:(validation_samples+test_samples)][:][:][:]
@@ -65,7 +65,9 @@ model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_data=(x_validation, y_validation))
+          validation_split=0.1,
+          #validation_data=(x_validation, y_validation)
+          )
 score = model.evaluate(x_validation, y_validation, verbose=0)
 print('Validation loss:', score[0])
 print('Validation accuracy:', score[1])
