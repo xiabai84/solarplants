@@ -251,7 +251,23 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
         # add :3 in last index for RGBA images
         if image.shape[2] == 4:
             image = image[:, :, :3]
-        images_x[i, :, :, :] = image / 255.
-        images_y[i] = bool(f[1])
+
+        if options['YCbCr']:
+            for x in range(image.shape[0]):
+                for y in range(image.shape[1]):
+                    image[x, y, :] = rgb2ycbcr.dot(image[x, y, :])+rgb2ycbcr_shift
+
+        images_x[image_versions * i, :, :, :] = image / 255.
+        images_y[image_versions * i] = bool(f[1])
+
+    if options['horizontal_flip']:
+        for i in range(len(filenames)):
+            images_y[image_versions * i + horizontal_flip_index] = images_y[image_versions * i]
+            images_x[image_versions * i + horizontal_flip_index, :, :, :] = images_x[image_versions * i, :, ::-1, :]
+
+    if options['vertical_flip']:
+        for i in range(len(filenames)):
+            images_y[image_versions * i + vertical_flip_index] = images_y[image_versions * i]
+            images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
     return images_x, images_y
