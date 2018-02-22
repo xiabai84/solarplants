@@ -35,7 +35,6 @@ class DownloadSession:
                              backoff_factor=0.5,
                              status_forcelist=[500, 502, 503, 504])
 
-
         self.api_key = api_key
 
         # Default values for API call
@@ -195,7 +194,10 @@ class DownloadSession:
 def load_data(filenames_csv, folder, image_size, **kwargs):
 
     options = {
-        'skip_headline': True
+        'skip_headline': True,
+        'horizontal_flip': False,
+        'vertical_flip': False,
+        'YCbCr': False,
     }
     options.update(kwargs)
 
@@ -203,11 +205,47 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     if options['skip_headline']:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv, encoding="latin-1").readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0],int(f[1])) for f in filenames if f[1] != '2']
+    filenames = [(f[0], int(f[1])) for f in filenames if f[1] != '2']
 
-    images_x = np.ndarray((len(filenames), image_size, image_size, 3), dtype='float32')
-    images_y = np.ndarray((len(filenames),), dtype=bool)
-    for i,f in enumerate(filenames):
+    sample_count = len(filenames)
+    image_versions = 1
+    if options['horizontal_flip']:
+        sample_count += len(filenames)
+        horizontal_flip_index = image_versions
+        image_versions += 1
+    if options['vertical_flip']:
+        sample_count += len(filenames)
+        vertical_flip_index = image_versions
+        image_versions += 1
+
+    rgb2ycbcr = None
+    rgb2ycbcr_shift = None
+    if options['YCbCr'] == 'JPEG':
+        # Conversion matrix according to JPEG conversion formula
+        # https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
+        rgb2ycbcr = np.array([
+            [0.299000, 0.587000, 0.114000],
+            [-0.168736, -0.331264, 0.500000],
+            [0.500000, -0.418688, -0.081312]])
+        rgb2ycbcr_shift = np.array(
+            [0., 128., 128.]
+        )
+    elif options['YCbCr'] == 'BT601':
+        # Conversion matrix according to ITU-R BT.601 standard
+        # https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion
+        rgb2ycbcr = np.array([
+            [65.738, 129.057, 25.064],
+            [-37.945, -74.494,  112.439],
+            [112.439, -94.154, -18.285]]) / 256.
+        rgb2ycbcr_shift = np.array(
+            [16., 128., 128.]
+        )
+    elif options['YCbCr']:
+        raise ValueError('Unknown value for option YCbCr: "{}"'.format(str(options['YCbCr'])))
+
+    images_x = np.ndarray((sample_count, image_size, image_size, 3), dtype='float32')
+    images_y = np.ndarray((sample_count,), dtype=bool)
+    for i, f in enumerate(filenames):
         filename = os.path.join(folder, f[0])
         image = imageio.imread(filename).astype('float32')
         # add :3 in last index for RGBA images

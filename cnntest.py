@@ -4,6 +4,9 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 import sp_googlemaps
 
+# for development, reload the package every time
+#import importlib
+#importlib.reload(sp_googlemaps)
 
 batch_size = 64 # 128
 num_classes = 2
@@ -13,8 +16,8 @@ epochs = 30
 image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
-# load the MNIST data set, which already splits into train and test sets for us
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l.csv', 'images/thumbs', image_pixels, skip_headline=False)
+x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
+                                       skip_headline=False)
 
 # use n pictures as validation and test
 test_samples = int(0)
@@ -46,11 +49,12 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 #print(y_train)
 
 model = Sequential()
-model.add(Conv2D(32, kernel_size=(5, 5), strides=(1, 1),
+model.add(Conv2D(4, kernel_size=(10, 10), strides=(3, 3),
+                 padding='same',
                  activation='relu',
                  input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-model.add(Conv2D(64, (5, 5), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
+model.add(Conv2D(8, (5, 5), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(1000, activation='relu'))
