@@ -196,6 +196,8 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     options = {
         'skip_headline': True,
         'horizontal_flip': False,
+        'vertical_flip': False,
+        'YCbCr': False,
     }
     options.update(kwargs)
 
@@ -208,9 +210,38 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     sample_count = len(filenames)
     image_versions = 1
     if options['horizontal_flip']:
-        sample_count *= 2
+        sample_count += len(filenames)
         horizontal_flip_index = image_versions
         image_versions += 1
+    if options['vertical_flip']:
+        sample_count += len(filenames)
+        vertical_flip_index = image_versions
+        image_versions += 1
+
+    rgb2ycbcr = None
+    rgb2ycbcr_shift = None
+    if options['YCbCr'] == 'JPEG':
+        # Conversion matrix according to JPEG conversion formula
+        # https://en.wikipedia.org/wiki/YCbCr#JPEG_conversion
+        rgb2ycbcr = np.array([
+            [0.299000, 0.587000, 0.114000],
+            [-0.168736, -0.331264, 0.500000],
+            [0.500000, -0.418688, -0.081312]])
+        rgb2ycbcr_shift = np.array(
+            [0., 128., 128.]
+        )
+    elif options['YCbCr'] == 'BT601':
+        # Conversion matrix according to ITU-R BT.601 standard
+        # https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion
+        rgb2ycbcr = np.array([
+            [65.738, 129.057, 25.064],
+            [-37.945, -74.494,  112.439],
+            [112.439, -94.154, -18.285]]) / 256.
+        rgb2ycbcr_shift = np.array(
+            [16., 128., 128.]
+        )
+    elif options['YCbCr']:
+        raise ValueError('Unknown value for option YCbCr: "{}"'.format(str(options['YCbCr'])))
 
     images_x = np.ndarray((sample_count, image_size, image_size, 3), dtype='float32')
     images_y = np.ndarray((sample_count,), dtype=bool)
@@ -220,12 +251,23 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
         # add :3 in last index for RGBA images
         if image.shape[2] == 4:
             image = image[:, :, :3]
+
+        if options['YCbCr']:
+            for x in range(image.shape[0]):
+                for y in range(image.shape[1]):
+                    image[x, y, :] = rgb2ycbcr.dot(image[x, y, :])+rgb2ycbcr_shift
+
         images_x[image_versions * i, :, :, :] = image / 255.
         images_y[image_versions * i] = bool(f[1])
 
     if options['horizontal_flip']:
-        for i in range(sample_count):
+        for i in range(len(filenames)):
             images_y[image_versions * i + horizontal_flip_index] = images_y[image_versions * i]
-            images_x[image_versions * i + horizontal_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
+            images_x[image_versions * i + horizontal_flip_index, :, :, :] = images_x[image_versions * i, :, ::-1, :]
+
+    if options['vertical_flip']:
+        for i in range(len(filenames)):
+            images_y[image_versions * i + vertical_flip_index] = images_y[image_versions * i]
+            images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
     return images_x, images_y
