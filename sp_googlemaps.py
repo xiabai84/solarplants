@@ -35,7 +35,6 @@ class DownloadSession:
                              backoff_factor=0.5,
                              status_forcelist=[500, 502, 503, 504])
 
-
         self.api_key = api_key
 
         # Default values for API call
@@ -195,7 +194,8 @@ class DownloadSession:
 def load_data(filenames_csv, folder, image_size, **kwargs):
 
     options = {
-        'skip_headline': True
+        'skip_headline': True,
+        'horizontal_flip': False,
     }
     options.update(kwargs)
 
@@ -203,17 +203,29 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     if options['skip_headline']:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv).readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0],int(f[1])) for f in filenames if f[1] != '2']
+    filenames = [(f[0], int(f[1])) for f in filenames if f[1] != '2']
 
-    images_x = np.ndarray((len(filenames), image_size, image_size, 3), dtype='float32')
-    images_y = np.ndarray((len(filenames),), dtype=bool)
-    for i,f in enumerate(filenames):
+    sample_count = len(filenames)
+    image_versions = 1
+    if options['horizontal_flip']:
+        sample_count *= 2
+        horizontal_flip_index = image_versions
+        image_versions += 1
+
+    images_x = np.ndarray((sample_count, image_size, image_size, 3), dtype='float32')
+    images_y = np.ndarray((sample_count,), dtype=bool)
+    for i, f in enumerate(filenames):
         filename = os.path.join(folder, f[0])
         image = imageio.imread(filename).astype('float32')
         # add :3 in last index for RGBA images
         if image.shape[2] == 4:
             image = image[:, :, :3]
-        images_x[i, :, :, :] = image / 255.
-        images_y[i] = bool(f[1])
+        images_x[image_versions * i, :, :, :] = image / 255.
+        images_y[image_versions * i] = bool(f[1])
+
+    if options['horizontal_flip']:
+        for i in range(sample_count):
+            images_y[image_versions * i + horizontal_flip_index] = images_y[image_versions * i]
+            images_x[image_versions * i + horizontal_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
     return images_x, images_y
