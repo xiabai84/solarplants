@@ -8,16 +8,19 @@ import sp_googlemaps
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 64 # 128
+batch_size = 256 # 128
 num_classes = 2
-epochs = 30
+epochs = 15
 
 # input image dimensions
-image_pixels = 50
+image_pixels = 300
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
-                                       skip_headline=False)
+x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'Images_labeled', image_pixels,
+                                       skip_headline=False,
+                                       horizontal_flip=False,
+                                       vertical_flip=False,
+                                       YCbCr=False) #'BT601'/'JPEG'
 
 # use n pictures as validation and test
 test_samples = int(0)
@@ -77,7 +80,7 @@ model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_split=0.1,
+          validation_split=0.2,
           #validation_data=(x_validation, y_validation)
           )
 #score = model.evaluate(x_validation, y_validation, verbose=0)
@@ -87,3 +90,13 @@ model.fit(x_train, y_train,
 # plt.xlabel('Epochs')
 # plt.ylabel('Accuracy')
 # plt.show()
+
+
+# ToDo
+# - ImageDataGenerator
+# - Featurewise
+# - Dropout hoch (0,4)
+# - MEHR DATEN
+# - RMSProp statt Adam
+# - Balancing der Klassen
+# - Californiadaten zum Balancen? Eher nicht.

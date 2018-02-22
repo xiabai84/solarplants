@@ -204,7 +204,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     first_line_index = 0
     if options['skip_headline']:
         first_line_index = 1
-    filenames = [f.split(',') for f in open(filenames_csv).readlines()[first_line_index:] if f.strip()]
+    filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
     filenames = [(f[0], int(f[1])) for f in filenames if f[1] != '2']
 
     sample_count = len(filenames)
