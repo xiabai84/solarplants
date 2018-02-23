@@ -1,5 +1,5 @@
 import keras
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 import sp_googlemaps
@@ -49,15 +49,23 @@ y_test = keras.utils.to_categorical(y_test, num_classes)
 #print(y_train)
 
 model = Sequential()
-model.add(Conv2D(4, kernel_size=(10, 10), strides=(3, 3),
+model.add(Conv2D(64, kernel_size=(3, 3), strides=(1, 1),
                  padding='same',
                  activation='relu',
                  input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 2), strides=(1, 1)))
-model.add(Conv2D(8, (5, 5), activation='relu'))
+model.add(Dropout(0.2))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Dropout(0.2))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Dropout(0.2))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
-model.add(Dense(1000, activation='relu'))
+model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 model.compile(loss=keras.losses.categorical_crossentropy,
