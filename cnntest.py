@@ -13,12 +13,12 @@ num_classes = 2
 epochs = 15
 
 # input image dimensions
-image_pixels = 300
+image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'Images_labeled', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
                                        skip_headline=False,
-                                       horizontal_flip=False,
+                                       horizontal_flip=True,
                                        vertical_flip=False,
                                        YCbCr=False) #'BT601'/'JPEG'
 
@@ -75,7 +75,6 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
-
 model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
@@ -93,10 +92,10 @@ model.fit(x_train, y_train,
 
 
 # ToDo
-# - ImageDataGenerator
-# - Featurewise
-# - Dropout hoch (0,4)
+# - ImageDataGenerator: https://keras.io/preprocessing/image/
+# - Zuerst Featurewise normalisieren, dann Samplewise
+# - Dropout erhöhen (z.B. bis 0,4)
 # - MEHR DATEN
 # - RMSProp statt Adam
-# - Balancing der Klassen
+# - Wichtig! Balancing der Klassen
 # - Californiadaten zum Balancen? Eher nicht.
