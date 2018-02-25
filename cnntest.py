@@ -102,9 +102,9 @@ datagen_valid = ImageDataGenerator(
 datagen_valid.fit(x_validation)
 
 model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                    steps_per_epoch=x_train.shape[0] / batch_size, epochs=epochs,
+                    steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs,
                     validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
-                    validation_samples=x_validation.shape[0])
+                    validation_steps=x_validation.shape[0]//batch_size)
 
 # Without generator:
 #model.fit(x_all, y_all,
