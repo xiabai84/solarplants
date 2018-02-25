@@ -3,13 +3,14 @@ from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 from keras.preprocessing.image import ImageDataGenerator
+# TODO: from sklearn.model_selection import train_test_split
 import sp_googlemaps
 
 # for development, reload the package every time
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 128
+batch_size = 196
 num_classes = 2
 epochs = 30
 
@@ -102,9 +103,10 @@ datagen_valid = ImageDataGenerator(
 datagen_valid.fit(x_validation)
 
 model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                    steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs,
+                    steps_per_epoch=4 * x_train.shape[0] // batch_size, epochs=epochs,
                     validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
-                    validation_steps=x_validation.shape[0]//batch_size)
+                    validation_steps=x_validation.shape[0]//batch_size,
+                    verbose=2)
 
 # Without generator:
 #model.fit(x_all, y_all,
