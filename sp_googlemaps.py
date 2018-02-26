@@ -271,3 +271,33 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
             images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
     return images_x, images_y
+
+
+def fix_filenames(filenames_csv, folder, **kwargs):
+    options = {
+        'skip_headline': True,
+    }
+    options.update(kwargs)
+
+    first_line_index = 0
+    if options['skip_headline']:
+        first_line_index = 1
+    filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
+    filenames = [(f[0], int(f[1])) for f in filenames]
+
+    dir_contents = os.listdir(folder)
+
+    renames = 0
+
+    for i, f in enumerate(filenames):
+        filename = os.path.join(folder, f[0])
+        if not os.path.exists(filename):
+            print(re.sub(r'[äöüÄÖÜß]', r'..?', f[0]))
+            find_best_match = re.compile(re.sub(r'[äöüÄÖÜß]', r'..?', f[0]))
+            for existing_file in dir_contents:
+                if find_best_match.search(existing_file):
+                    os.rename(os.path.join(folder, existing_file), filename)
+                    renames += 1
+                    dir_contents.remove(existing_file)
+                    break
+    return renames

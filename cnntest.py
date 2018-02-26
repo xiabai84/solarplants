@@ -10,7 +10,7 @@ import sp_googlemaps
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 196
+batch_size = 256 # 128
 num_classes = 2
 epochs = 30
 
