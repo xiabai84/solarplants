@@ -3,7 +3,7 @@ from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 from keras.preprocessing.image import ImageDataGenerator
-# TODO: from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 import sp_googlemaps
 
 # for development, reload the package every time
@@ -24,15 +24,26 @@ x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', im
                                        vertical_flip=False,
                                        YCbCr=False) #'BT601'/'JPEG'
 
-# use n pictures as validation and test
-test_samples = int(0)
-validation_samples = int(float(x_all.shape[0]) * 0.2)
-x_validation = x_all[0:validation_samples, :, :, :]
-y_validation = y_all[0:validation_samples]
-x_test = x_all[validation_samples:(validation_samples+test_samples), :, :, :]
-y_test = y_all[validation_samples:(validation_samples+test_samples)]
-x_train = x_all[(validation_samples+test_samples):, :, :, :]
-y_train = y_all[(validation_samples+test_samples):]
+# use a percentage of pictures as validation and test
+test_ratio = 0
+validation_ratio = 0.2
+
+x_test = None
+y_test = None
+test_samples = 0
+if test_ratio > 0:
+    x_train, x_test, y_train, y_test = train_test_split(x_all, y_all, test_size=test_ratio)
+    test_samples = y_test.shape[0]
+else:
+    x_train = x_all
+    y_train = y_all
+
+x_validation = None
+y_validation = None
+validation_samples = 0
+if validation_ratio > 0:
+    x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=validation_ratio)
+    validation_samples = y_validation.shape[0]
 
 input_shape = (img_x, img_y, 3)
 
@@ -40,15 +51,17 @@ input_shape = (img_x, img_y, 3)
 print('x_all shape:', x_all.shape)
 print('y_all shape:', y_all.shape)
 print(x_train.shape[0], 'train samples')
-print(x_validation.shape[0], 'validation samples')
-print(x_test.shape[0], 'test samples')
+print(validation_samples, 'validation samples')
+print(test_samples, 'test samples')
 
 # convert class vectors to binary class matrices - this is for use in the
 # categorical_crossentropy loss below
 
 y_train = keras.utils.to_categorical(y_train, num_classes)
-y_validation = keras.utils.to_categorical(y_validation, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+if y_validation is not None:
+    y_validation = keras.utils.to_categorical(y_validation, num_classes)
+if y_test is not None:
+    y_test = keras.utils.to_categorical(y_test, num_classes)
 
 #print(y_train)
 
@@ -96,14 +109,15 @@ while flow_countdown > 0:
 datagen_valid = ImageDataGenerator(
     featurewise_center=True,
     featurewise_std_normalization=True,
-    rotation_range=10,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    horizontal_flip=True)
+    #rotation_range=10,
+    #width_shift_range=0.1,
+    #height_shift_range=0.1,
+    #horizontal_flip=True,
+)
 datagen_valid.fit(x_validation)
 
 model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                    steps_per_epoch=4 * x_train.shape[0] // batch_size, epochs=epochs,
+                    steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs,
                     validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
                     validation_steps=x_validation.shape[0]//batch_size,
                     verbose=2)
