@@ -13,6 +13,7 @@ from PIL import Image, ImageTk
 import os
 import glob
 import random
+import pandas as pd
 import csv
 
 # colors for the bboxes
@@ -70,7 +71,7 @@ class LabelTool():
         self.mainPanel.bind("<Motion>", self.mouseMove)
         self.parent.bind("<Escape>", self.cancelBBox)  # press <Espace> to cancel current bbox
         self.parent.bind("s", self.cancelBBox)
-        #self.parent.bind("a", self.prevImage) # press 'a' to go backforward
+        self.parent.bind("<BackSpace>", self.prevImage) # press '<BackSpace>' to go backforward
         self.parent.bind("0", self.nextImageF) # press 'd' to go forward
         self.parent.bind("1", self.nextImageT)
         self.parent.bind("2", self.nextImageU)
@@ -89,8 +90,8 @@ class LabelTool():
         # control panel for image navigation
         self.ctrPanel = Frame(self.frame)
         self.ctrPanel.grid(row = 5, column = 1, columnspan = 2, sticky = W+E)
-        #self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
-        #self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
+        self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
+        self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
         self.nextBtnU = Button(self.ctrPanel, text='2', width = 10, command = self.nextImageU)
         self.nextBtnU.pack(side = LEFT, padx = 5, pady = 3)
         self.nextBtnT = Button(self.ctrPanel, text='1', width = 10, command = self.nextImageT)
@@ -270,7 +271,10 @@ class LabelTool():
         self.bboxList = []
 
     def prevImage(self, event = None):
-        self.saveImage()
+        #self.saveImage()
+        df = pd.read_csv('labels.csv')
+        df.drop(df.tail(1).index, inplace=True)
+        df.to_csv('labels.csv', index=False)
         if self.cur > 1:
             self.cur -= 1
             self.loadImage()
