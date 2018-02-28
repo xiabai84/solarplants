@@ -86,6 +86,9 @@ model.add(Flatten())
 model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
+# Have an existing weights file? Load before compiling!
+#model.load_weights('xxxxxx cnntest.h5')
+
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
@@ -136,8 +139,8 @@ model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
 # plt.show()
 
 now = datetime.datetime.now()
-model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2}-{:0>2} cnntest.h5' \
-    .format(now.year, now.month, now.day, now.hour, now.minute, now.second)
+model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest.h5' \
+    .format(now.year, now.month, now.day, now.hour, now.minute)
 
 model.save(model_filename)
 
