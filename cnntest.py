@@ -18,7 +18,7 @@ num_classes = 2
 epochs = 30
 
 # input image dimensions
-image_pixels = 50
+image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
 x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
