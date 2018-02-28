@@ -42,7 +42,8 @@ def create_thumbnails(download_folder, thumbs_sub_folder='thumbs', thumbnail_siz
     create_folder_if_not_exists(thumbs_folder)
     with os.scandir(download_folder) as it:
         for entry in it:
-            if entry.is_file():
+            print("Thumbnail of %s created." % entry.name)
+            if entry.is_file() and entry.name != '.DS_Store':
                 image = Image.open(entry.path)
                 image = image.resize((thumbnail_size, thumbnail_size), resample=PIL.Image.LANCZOS)
                 image.save(os.path.join(thumbs_folder, entry.name))
