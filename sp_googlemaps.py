@@ -23,9 +23,21 @@ def create_folder_if_not_exists(folder_path):
         os.mkdir(folder_path)
 
 
+def address_to_filename(address):
+    address = address.replace('ä', 'ae')
+    address = address.replace('ö', 'oe')
+    address = address.replace('ü', 'ue')
+    address = address.replace('Ä', 'Ae')
+    address = address.replace('Ö', 'Oe')
+    address = address.replace('Ü', 'Ue')
+    address = address.replace('ß', 'ss')
+    # Keep only basic english letters a-zA-Z, numbers and whitespaces
+    address = re.sub(r'[^a-zA-Z0-9\s]+', '', address)
+    return address
+
 class DownloadSession:
     def __init__(self, api_key='', download_folder='images', thumbs_sub_folder='thumbs', image_size=300, crop_size=25,
-                 thumbnail_size=50, thumbnail_prefix=''):
+                 thumbnail_size=64, thumbnail_prefix=''):
 
         if (not thumbs_sub_folder) and (not thumbnail_prefix):
             raise ValueError('thumbnail_prefix and thumbnail_folder cannot both be empty')
@@ -39,7 +51,7 @@ class DownloadSession:
 
         # Default values for API call
         self.maps_api_options = {
-                'size': '300x350',
+                'size': '{}x{}'.format(image_size, image_size+2*crop_size),
                 'zoom': '20',
                 'maptype': 'satellite',
                 'format': 'png32',
@@ -164,7 +176,7 @@ class DownloadSession:
         now = datetime.datetime.now()
         image_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2}-{:0>2} {}.png'\
             .format(now.year, now.month, now.day, now.hour, now.minute, now.second,
-                    re.sub(r'[^\w\s]+', '', address))
+                    address_to_filename(address))
 
         # Check for duplicate
         hash_value = self.get_hash(image_req.content)
