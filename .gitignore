@@ -6,3 +6,4 @@ googleapikey.txt
 Label_Tool/*.csv
 !Label_Tool/Images/001/.gitignore
 plotmodel.py
+model.png
