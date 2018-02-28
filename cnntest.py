@@ -6,6 +6,7 @@ from keras.utils import plot_model
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
+import datetime
 
 
 # for development, reload the package every time
@@ -17,7 +18,7 @@ num_classes = 2
 epochs = 30
 
 # input image dimensions
-image_pixels = 64
+image_pixels = 50
 img_x, img_y = image_pixels, image_pixels
 
 x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
@@ -87,6 +88,9 @@ model.add(Flatten())
 model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
+# Have an existing weights file? Load before compiling!
+#model.load_weights('xxxxxx cnntest.h5')
+
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
@@ -141,6 +145,11 @@ model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
 # plt.ylabel('Accuracy')
 # plt.show()
 
+now = datetime.datetime.now()
+model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest.h5' \
+    .format(now.year, now.month, now.day, now.hour, now.minute)
+
+model.save(model_filename)
 
 # ToDo
 # - ImageDataGenerator: https://keras.io/preprocessing/image/

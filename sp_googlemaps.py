@@ -16,6 +16,7 @@ import os.path
 
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 BASE_URL_GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json?'
+THUMBNAIL_DEFAULT_SIZE = int(64)
 
 
 def create_folder_if_not_exists(folder_path):
@@ -35,9 +36,21 @@ def address_to_filename(address):
     address = re.sub(r'[^a-zA-Z0-9\s]+', '', address)
     return address
 
+
+def create_thumbnails(download_folder, thumbs_sub_folder='thumbs', thumbnail_size=THUMBNAIL_DEFAULT_SIZE):
+    thumbs_folder = os.path.join(download_folder, thumbs_sub_folder)
+    create_folder_if_not_exists(thumbs_folder)
+    with os.scandir(download_folder) as it:
+        for entry in it:
+            if entry.is_file():
+                image = Image.open(entry.path)
+                image = image.resize((thumbnail_size, thumbnail_size), resample=PIL.Image.LANCZOS)
+                image.save(os.path.join(thumbs_folder, entry.name))
+
+
 class DownloadSession:
     def __init__(self, api_key='', download_folder='images', thumbs_sub_folder='thumbs', image_size=300, crop_size=25,
-                 thumbnail_size=64, thumbnail_prefix=''):
+                 thumbnail_size=THUMBNAIL_DEFAULT_SIZE, thumbnail_prefix=''):
 
         if (not thumbs_sub_folder) and (not thumbnail_prefix):
             raise ValueError('thumbnail_prefix and thumbnail_folder cannot both be empty')
