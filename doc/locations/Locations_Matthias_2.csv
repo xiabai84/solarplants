@@ -1,27 +1,27 @@
-PLZ;Ort;Strasse
-66663;Merzig;Hilbringer Str.
-66663;Merzig;Am Sonnenhang
-66780;Rehlingen-Siersburg;Reisergass
-66564;Ottweiler;Schiffweilerstraße
-66564;Ottweiler;Am Galgenberg
-66564;Ottweiler;Hinter Moselersgärten
-66564;Ottweiler;Karl-Marx-Straße
-66564;Ottweiler;Ottweilerstraße
-66701;Beckingen;Vor den Mühlen
-66701;Beckingen;Im Wildenstreck
-66701;Beckingen;Nikolausstraße
-66802;Uberherrn;De-Gasperi-Ring
-66625;Nohfelden;Am Wallesborn
-86923;Finning;Leitenberg
-86923;Finning;Auf der Höhe
-86940;Schwifting;Unteranger
-86899;Landsberg am Lech;Galgenweg
-86899;Landsberg am Lech;Bürgermeister-Dr.-Hartmann-Straße
-86682;Genderkingen;Südstraße
-73450;Neresheim;Dominikus-Zimmermann-Straße
-73450;Neresheim;Am Königsrain
-73450;Neresheim;Am Jagdstein
-73450;Neresheim;Albert-Schweitzer-Straße
-73450;Neresheim;Am Lohbühl 
-73466;Lauchheim;Im Roten Feld
-73466;Lauchheim;Scheffelstraße 
+PLZ,Ort,Strasse,Erste Hausnummer
+66663,Merzig,Hilbringer Str.,1
+66663,Merzig,Am Sonnenhang,1
+66780,Rehlingen-Siersburg,Reisergass,1
+66564,Ottweiler,Schiffweilerstraße,1
+66564,Ottweiler,Am Galgenberg,1
+66564,Ottweiler,Hinter Moselersgärten,1
+66564,Ottweiler,Karl-Marx-Straße,1
+66564,Ottweiler,Ottweilerstraße,1
+66701,Beckingen,Vor den Mühlen,1
+66701,Beckingen,Im Wildenstreck,1
+66701,Beckingen,Nikolausstraße,1
+66802,Uberherrn,De-Gasperi-Ring,1
+66625,Nohfelden,Am Wallesborn,1
+86923,Finning,Leitenberg,1
+86923,Finning,Auf der Höhe,1
+86940,Schwifting,Unteranger,1
+86899,Landsberg am Lech,Galgenweg,1
+86899,Landsberg am Lech,Bürgermeister-Dr.-Hartmann-Straße,1
+86682,Genderkingen,Südstraße,1
+73450,Neresheim,Dominikus-Zimmermann-Straße,1
+73450,Neresheim,Am Königsrain,1
+73450,Neresheim,Am Jagdstein,1
+73450,Neresheim,Albert-Schweitzer-Straße,1
+73450,Neresheim,Am Lohbühl ,1
+73466,Lauchheim,Im Roten Feld,1
+73466,Lauchheim,Scheffelstraße ,1
