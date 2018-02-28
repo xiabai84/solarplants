@@ -5,7 +5,7 @@ if __name__ == "__main__":
     # load google api key:
     api_key = open('googleapikey.txt', 'r').readline().strip()
 
-    address_file = open('doc/Locations_L.csv', 'r')
+    address_file = open('doc/locations/Locations_Jasper_1.csv', 'r')
     #address_file = open('doc/Locations_Matthias.csv', 'r')
     #address_file = open('doc/Locations_Lennart.csv', 'r')
     # Get rid of header:
@@ -17,7 +17,7 @@ if __name__ == "__main__":
                         'w')
     results_file.write('Filename,Solarplant\n')
 
-    maps_downloader = sp_googlemaps.DownloadSession(api_key, 'images/test')
+    maps_downloader = sp_googlemaps.DownloadSession(api_key, 'images/')
     for line in address_file.readlines():
         if not line.strip():
             continue

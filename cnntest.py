@@ -2,9 +2,11 @@ import keras
 from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
+from keras.utils import plot_model
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
+
 
 # for development, reload the package every time
 #import importlib
@@ -72,13 +74,13 @@ model.add(Conv2D(64, kernel_size=(3, 3),
                  input_shape=input_shape))
 model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(0.2))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
@@ -88,6 +90,11 @@ model.add(Dense(num_classes, activation='softmax'))
 model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
+
+
+# Creates scheme of the model
+# plot_model(model, to_file='model.png', show_shapes=True, show_layer_names=False)
+
 
 # Use the data generator:
 datagen = ImageDataGenerator(
