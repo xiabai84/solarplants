@@ -1,17 +1,13 @@
 import sp_googlemaps
-import importlib
 import datetime
 
 if __name__ == "__main__":
-    # for development, reload the package every time
-    importlib.reload(sp_googlemaps)
-
     # load google api key:
     api_key = open('googleapikey.txt', 'r').readline().strip()
 
-    #address_file = open('doc/Locations_L.csv', 'r')
+    address_file = open('doc/Locations_L.csv', 'r')
     #address_file = open('doc/Locations_Matthias.csv', 'r')
-    address_file = open('doc/Locations_Lennart.csv', 'r')
+    #address_file = open('doc/Locations_Lennart.csv', 'r')
     # Get rid of header:
     _ = address_file.readline()
 
