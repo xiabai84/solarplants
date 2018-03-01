@@ -75,7 +75,8 @@ if y_test is not None:
 #print(y_train)
 
 # Use dropout to reduce overfitting
-dropout_ratio = 0.2
+# http://www.jmlr.org/papers/volume15/srivastava14a.old/srivastava14a.pdf
+dropout_ratio = 0.3
 
 model = Sequential()
 model.add(Conv2D(64, kernel_size=(3, 3),
@@ -99,6 +100,9 @@ model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
 #model.load_weights('xxxxxx cnntest.h5')
+
+# This number does not change any calculation, just the labels in the plots
+resume_from_epoch = 90
 
 model.compile(loss=loss_function,
               optimizer=keras.optimizers.Adam(),
@@ -137,13 +141,14 @@ datagen_valid = ImageDataGenerator(
 datagen_valid.fit(x_validation)
 
 fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                                  steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs,
+                                  steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs+resume_from_epoch,
                                   validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
                                   validation_steps=x_validation.shape[0]//batch_size,
-                                  verbose=2)
+                                  verbose=2,
+                                  initial_epoch=resume_from_epoch)
 
 # Without generator:
-#model.fit(x_all, y_all,
+#model.fit(x_train, y_train,
 #          batch_size=batch_size,
 #          epochs=epochs,
 #          verbose=1,
@@ -160,7 +165,7 @@ model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
 
 model.save(model_filename + '.h5')
 
-xran = range(1, epochs+1)
+xran = range(resume_from_epoch + 1, resume_from_epoch + epochs + 1)
 
 plt.plot(xran, fit_history.history['acc'], label='Training')
 plt.plot(xran, fit_history.history['val_acc'], label='Validation')
