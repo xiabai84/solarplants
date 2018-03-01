@@ -296,6 +296,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
                 for y in range(image.shape[1]):
                     image[x, y, :] = rgb2ycbcr.dot(image[x, y, :])+rgb2ycbcr_shift
 
+        images_x[image_versions * i, :, :, :] = image / 255.
         images_y[image_versions * i] = bool(f[1])
 
     if options['horizontal_flip']:
