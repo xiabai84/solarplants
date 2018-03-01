@@ -231,7 +231,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     if options['skip_headline']:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0], int(f[1])) for f in filenames if f[1] != '2']
+    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != 2]
 
     sample_count = len(filenames)
     image_versions = 1
@@ -295,6 +295,9 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
             images_y[image_versions * i + vertical_flip_index] = images_y[image_versions * i]
             images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
+    positive_data = np.sum(images_y)
+    print('{} out of {} with solar panel ({:.1f}%)'.format(positive_data, sample_count,
+                                                           100.*positive_data/sample_count))
     return images_x, images_y
 
 
