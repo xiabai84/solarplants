@@ -1,3 +1,7 @@
+# Use this to temporarily disable GPU. Important: set BEFORE importing keras/tf!
+#import os
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import keras
 from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
@@ -15,13 +19,13 @@ import datetime
 
 batch_size = 256 # 128
 num_classes = 2
-epochs = 30
+epochs = 60
 
 # input image dimensions
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -68,21 +72,24 @@ if y_test is not None:
 
 #print(y_train)
 
+# Use dropout to reduce overfitting
+dropout_ratio = 0.2
+
 model = Sequential()
 model.add(Conv2D(64, kernel_size=(3, 3),
                  padding='same',
                  activation='relu',
                  input_shape=input_shape))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(256, activation='relu'))
