@@ -1,3 +1,7 @@
+# Use this to temporarily disable GPU. Important: set BEFORE importing keras/tf!
+#import os
+#os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import keras
 from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
@@ -7,21 +11,23 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
 import datetime
+import matplotlib.pylab as plt
 
 
 # for development, reload the package every time
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 256 # 128
+batch_size = 100 # 128
 num_classes = 2
-epochs = 30
+epochs = 60
+loss_function = keras.losses.categorical_crossentropy
 
 # input image dimensions
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('test_cnn_m_l_j.csv', 'images/thumbs', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -68,21 +74,25 @@ if y_test is not None:
 
 #print(y_train)
 
+# Use dropout to reduce overfitting
+# http://www.jmlr.org/papers/volume15/srivastava14a.old/srivastava14a.pdf
+dropout_ratio = 0.3
+
 model = Sequential()
 model.add(Conv2D(64, kernel_size=(3, 3),
                  padding='same',
                  activation='relu',
                  input_shape=input_shape))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(0.2))
+model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(256, activation='relu'))
@@ -91,7 +101,10 @@ model.add(Dense(num_classes, activation='softmax'))
 # Have an existing weights file? Load before compiling!
 #model.load_weights('xxxxxx cnntest.h5')
 
-model.compile(loss=keras.losses.categorical_crossentropy,
+# This number does not change any calculation, just the labels in the plots
+resume_from_epoch = 90
+
+model.compile(loss=loss_function,
               optimizer=keras.optimizers.Adam(),
               metrics=['accuracy'])
 
@@ -127,14 +140,15 @@ datagen_valid = ImageDataGenerator(
 )
 datagen_valid.fit(x_validation)
 
-model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
-                    steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs,
-                    validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
-                    validation_steps=x_validation.shape[0]//batch_size,
-                    verbose=2)
+fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
+                                  steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs+resume_from_epoch,
+                                  validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
+                                  validation_steps=x_validation.shape[0]//batch_size,
+                                  verbose=2,
+                                  initial_epoch=resume_from_epoch)
 
 # Without generator:
-#model.fit(x_all, y_all,
+#model.fit(x_train, y_train,
 #          batch_size=batch_size,
 #          epochs=epochs,
 #          verbose=1,
@@ -146,10 +160,28 @@ model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
 # plt.show()
 
 now = datetime.datetime.now()
-model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest.h5' \
+model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
     .format(now.year, now.month, now.day, now.hour, now.minute)
 
-model.save(model_filename)
+model.save(model_filename + '.h5')
+
+xran = range(resume_from_epoch + 1, resume_from_epoch + epochs + 1)
+
+plt.plot(xran, fit_history.history['acc'], label='Training')
+plt.plot(xran, fit_history.history['val_acc'], label='Validation')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.savefig(model_filename + '_acc.png')
+plt.clf()
+
+plt.plot(xran, fit_history.history['loss'], label='Training')
+plt.plot(xran, fit_history.history['val_loss'], label='Validation')
+plt.xlabel('Epochs')
+plt.ylabel('Loss ({})'.format(loss_function.__name__))
+plt.legend()
+plt.savefig(model_filename + '_loss.png')
+plt.clf()
 
 # ToDo
 # - ImageDataGenerator: https://keras.io/preprocessing/image/

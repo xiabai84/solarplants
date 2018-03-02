@@ -37,16 +37,29 @@ def address_to_filename(address):
     return address
 
 
-def create_thumbnails(download_folder, thumbs_sub_folder='thumbs', thumbnail_size=THUMBNAIL_DEFAULT_SIZE):
-    thumbs_folder = os.path.join(download_folder, thumbs_sub_folder)
-    create_folder_if_not_exists(thumbs_folder)
+def create_thumbnails(download_folder, thumbs_sub_folder='thumbs', thumbnail_size=THUMBNAIL_DEFAULT_SIZE,
+                      verbose=False, skip_existing=True):
     with os.scandir(download_folder) as it:
+        thumbs_folder = os.path.join(download_folder, thumbs_sub_folder)
+        create_folder_if_not_exists(thumbs_folder)
+        thumbnail_counter = int(0)
+        skip_counter = int(0)
         for entry in it:
-            print("Thumbnail of %s created." % entry.name)
             if entry.is_file() and entry.name != '.DS_Store':
+                thumbnail_path = os.path.join(thumbs_folder, entry.name)
+                if skip_existing and os.path.isfile(thumbnail_path):
+                    skip_counter += 1
+                    if verbose:
+                        print("Skipped existing file {}".format(entry.name))
+                    continue
+
                 image = Image.open(entry.path)
                 image = image.resize((thumbnail_size, thumbnail_size), resample=PIL.Image.LANCZOS)
-                image.save(os.path.join(thumbs_folder, entry.name))
+                image.save(thumbnail_path)
+                thumbnail_counter += 1
+                if verbose:
+                    print("Thumbnail of %s created." % entry.name)
+        print("Total: {0} thumbnails of size {1}x{1} were created, {2} skipped".format(thumbnail_counter, thumbnail_size, skip_counter))
 
 
 class DownloadSession:
@@ -231,7 +244,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     if options['skip_headline']:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0], int(f[1])) for f in filenames if f[1] != '2']
+    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != 2]
 
     sample_count = len(filenames)
     image_versions = 1
@@ -296,6 +309,9 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
             images_y[image_versions * i + vertical_flip_index] = images_y[image_versions * i]
             images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
+    positive_data = np.sum(images_y)
+    print('{} out of {} with solar panel ({:.1f}%)'.format(positive_data, sample_count,
+                                                           100.*positive_data/sample_count))
     return images_x, images_y
 
 

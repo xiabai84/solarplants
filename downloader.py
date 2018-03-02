@@ -21,7 +21,7 @@ if __name__ == "__main__":
     for line in address_file.readlines():
         if not line.strip():
             continue
-        (postal_code, city, street, starting_street_number) = line.strip().split(',')
+        (postal_code, city, street, starting_street_number) = map(lambda x: x.strip(), line.split(','))
 
         street_numbers_found = 0
         street_numbers_skipped = 0
