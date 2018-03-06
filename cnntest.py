@@ -11,6 +11,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
 import datetime
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pylab as plt
 
 
@@ -18,7 +20,7 @@ import matplotlib.pylab as plt
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 100 # 128
+batch_size = 144
 num_classes = 2
 epochs = 60
 loss_function = keras.losses.categorical_crossentropy
@@ -91,7 +93,7 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
@@ -99,10 +101,10 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
-#model.load_weights('xxxxxx cnntest.h5')
+model.load_weights('2018-03-06_11-15 cnntest.h5')
 
 # This number does not change any calculation, just the labels in the plots
-resume_from_epoch = 90
+resume_from_epoch = 60
 
 model.compile(loss=loss_function,
               optimizer=keras.optimizers.Adam(),
@@ -117,10 +119,11 @@ model.compile(loss=loss_function,
 datagen = ImageDataGenerator(
     featurewise_center=True,
     featurewise_std_normalization=True,
-    rotation_range=10,
+    #rotation_range=10,
     width_shift_range=0.1,
     height_shift_range=0.1,
-    horizontal_flip=True)
+    horizontal_flip=True
+)
 
 # Use fit to get proper featurewise_center and featurewise_std_normalization
 datagen.fit(x_train)
