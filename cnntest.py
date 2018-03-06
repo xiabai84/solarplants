@@ -172,6 +172,7 @@ model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
 model.save(model_filename + '_weights.h5')
 
 with open(model_filename + '_layers.txt', 'w') as layer_file:
+    layer_file.write(datagen.__class__.__name__ + '\n' + str(datagen.__dict__) + '\n\n\n')
     for layer in model.layers:
         config = layer.get_config()
         layer_file.write(
