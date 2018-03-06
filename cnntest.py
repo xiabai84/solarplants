@@ -174,8 +174,13 @@ model.save(model_filename + '_weights.h5')
 with open(model_filename + '_layers.txt', 'w') as layer_file:
     for layer in model.layers:
         config = layer.get_config()
-        layer_file.write(layer.__class__.__name__ + '\n' + str(config) + '\n')
-
+        layer_file.write(
+            ' '.join([
+                layer.__class__.__name__,
+                'in:' + str(layer.input_shape),
+                'out:' + str(layer.output_shape)])
+            + '\n'
+            + str(config) + '\n')
 plot_x_range = range(resume_from_epoch + 1, resume_from_epoch + epochs + 1)
 
 plt.plot(plot_x_range, fit_history.history['acc'], label='Training')
