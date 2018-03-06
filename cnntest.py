@@ -22,7 +22,7 @@ import matplotlib.pylab as plt
 
 batch_size = 144
 num_classes = 2
-epochs = 60
+epochs = 120
 loss_function = keras.losses.categorical_crossentropy
 
 # input image dimensions
@@ -90,10 +90,10 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
@@ -101,10 +101,10 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
-model.load_weights('2018-03-06_11-15 cnntest.h5')
+#model.load_weights('2018-03-06_11-15 cnntest.h5')
 
 # This number does not change any calculation, just the labels in the plots
-resume_from_epoch = 60
+resume_from_epoch = 0
 
 model.compile(loss=loss_function,
               optimizer=keras.optimizers.Adam(),
