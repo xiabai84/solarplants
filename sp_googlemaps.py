@@ -230,6 +230,15 @@ class DownloadSession:
         return image_filename
 
 
+def load_filenames(filenames_csv, skip_headline):
+    first_line_index = 0
+    if skip_headline:
+        first_line_index = 1
+    filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
+    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != 2]
+    return filenames
+
+
 def load_data(filenames_csv, folder, image_size, **kwargs):
 
     options = {
@@ -237,14 +246,12 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
         'horizontal_flip': False,
         'vertical_flip': False,
         'YCbCr': False,
+        'featurewise_center': False,
+        'featurewise_std_normalization': False,
     }
     options.update(kwargs)
 
-    first_line_index = 0
-    if options['skip_headline']:
-        first_line_index = 1
-    filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != 2]
+    filenames = load_filenames(filenames_csv, options['skip_headline'])
 
     sample_count = len(filenames)
     image_versions = 1
@@ -299,6 +306,14 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
         images_x[image_versions * i, :, :, :] = image / 255.
         images_y[image_versions * i] = bool(f[1])
 
+    if options['featurewise_center']:
+        for channel in range(3):
+            images_x[:, :, :, channel] -= np.mean(images_x[:, :, :, channel])
+
+    if options['featurewise_std_normalization']:
+        for channel in range(3):
+            images_x[:, :, :, channel] /= np.std(images_x[:, :, :, channel])
+
     if options['horizontal_flip']:
         for i in range(len(filenames)):
             images_y[image_versions * i + horizontal_flip_index] = images_y[image_versions * i]
@@ -343,3 +358,19 @@ def fix_filenames(filenames_csv, folder, **kwargs):
                     dir_contents.remove(existing_file)
                     break
     return renames
+
+
+def mode_predict(model, filenames_csv, folder, image_size):
+    x_all, y_all = load_data(filenames_csv, folder, image_size,
+                      skip_headline=False,
+                      featurewise_center=True,
+                      featurewise_std_normalization=True)
+    y_predict = model.predict(x_all)
+    y_predict_labels = np.argmax(y_predict, 1).astype('bool')
+
+    #for i in range(y_predict_labels.shape[0]):
+    #    if y_all[i] and (not y_predict_labels[i]):
+    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_neg', filenames[i][0]))
+    #    if (not y_all[i]) and y_predict_labels[i]:
+    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_pos', filenames[i][0]))
+    return y_predict_labels
