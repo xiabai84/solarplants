@@ -3,6 +3,7 @@
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import keras
+from keras import layers
 from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
@@ -168,20 +169,25 @@ now = datetime.datetime.now()
 model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
     .format(now.year, now.month, now.day, now.hour, now.minute)
 
-model.save(model_filename + '.h5')
+model.save(model_filename + '_weights.h5')
 
-xran = range(resume_from_epoch + 1, resume_from_epoch + epochs + 1)
+with open(model_filename + '_layers.txt', 'w') as layer_file:
+    for layer in model.layers:
+        config = layer.get_config()
+        layer_file.write(layer.__class__.__name__ + '\n' + str(config) + '\n')
 
-plt.plot(xran, fit_history.history['acc'], label='Training')
-plt.plot(xran, fit_history.history['val_acc'], label='Validation')
+plot_x_range = range(resume_from_epoch + 1, resume_from_epoch + epochs + 1)
+
+plt.plot(plot_x_range, fit_history.history['acc'], label='Training')
+plt.plot(plot_x_range, fit_history.history['val_acc'], label='Validation')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.savefig(model_filename + '_acc.png')
 plt.clf()
 
-plt.plot(xran, fit_history.history['loss'], label='Training')
-plt.plot(xran, fit_history.history['val_loss'], label='Validation')
+plt.plot(plot_x_range, fit_history.history['loss'], label='Training')
+plt.plot(plot_x_range, fit_history.history['val_loss'], label='Validation')
 plt.xlabel('Epochs')
 plt.ylabel('Loss ({})'.format(loss_function.__name__))
 plt.legend()
