@@ -22,14 +22,14 @@ import matplotlib.pylab as plt
 
 batch_size = 144
 num_classes = 2
-epochs = 60
+epochs = 120
 loss_function = keras.losses.categorical_crossentropy
 
 # input image dimensions
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/thumbs', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -103,7 +103,7 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
-model.load_weights('2018-03-06_11-52 cnntest.h5')
+#model.load_weights('2018-03-06_11-15 cnntest.h5')
 
 # This number does not change any calculation, just the labels in the plots
 resume_from_epoch = 0
