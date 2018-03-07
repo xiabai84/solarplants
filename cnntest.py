@@ -22,16 +22,16 @@ import matplotlib.pylab as plt
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 16
+batch_size = 112
 num_classes = 2
 epochs = 60
 loss_function = keras.losses.categorical_crossentropy
 
 # input image dimensions
-image_pixels = 128
+image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs128', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -100,9 +100,6 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(dropout_ratio))
-model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
 model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
@@ -155,7 +152,7 @@ model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
     .format(now.year, now.month, now.day, now.hour, now.minute)
 
 # define the checkpoint
-checkpoint_filepath = model_filename + "_weights{epoch:02d}-{loss:.4f}.h5"
+checkpoint_filepath = model_filename + "_weights{epoch:03d}-{loss:.4f}.h5"
 checkpoint = ModelCheckpoint(checkpoint_filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
