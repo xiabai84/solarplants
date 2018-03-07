@@ -13,6 +13,7 @@ import re
 import hashlib
 import os
 import os.path
+from multiprocessing import Pool
 
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 BASE_URL_GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json?'
@@ -37,29 +38,38 @@ def address_to_filename(address):
     return address
 
 
+def create_thumbnail(data):
+    from_file = data[0]
+    to_file = data[1]
+    size = data[2]
+    image = Image.open(from_file)
+    image = image.resize((size, size), resample=PIL.Image.LANCZOS)
+    image.save(to_file)
+
+
 def create_thumbnails(download_folder, thumbs_sub_folder='thumbs', thumbnail_size=THUMBNAIL_DEFAULT_SIZE,
-                      verbose=False, skip_existing=True):
+                      skip_existing=True):
+    thumbnail_counter = int(0)
+    skip_counter = int(0)
+    data = list()
     with os.scandir(download_folder) as it:
         thumbs_folder = os.path.join(download_folder, thumbs_sub_folder)
         create_folder_if_not_exists(thumbs_folder)
-        thumbnail_counter = int(0)
-        skip_counter = int(0)
         for entry in it:
             if entry.is_file() and entry.name != '.DS_Store':
                 thumbnail_path = os.path.join(thumbs_folder, entry.name)
                 if skip_existing and os.path.isfile(thumbnail_path):
                     skip_counter += 1
-                    if verbose:
-                        print("Skipped existing file {}".format(entry.name))
                     continue
 
-                image = Image.open(entry.path)
-                image = image.resize((thumbnail_size, thumbnail_size), resample=PIL.Image.LANCZOS)
-                image.save(thumbnail_path)
+                data.append((entry.path, thumbnail_path, thumbnail_size))
+
                 thumbnail_counter += 1
-                if verbose:
-                    print("Thumbnail of %s created." % entry.name)
-        print("Total: {0} thumbnails of size {1}x{1} were created, {2} skipped".format(thumbnail_counter, thumbnail_size, skip_counter))
+
+    with Pool(processes=8) as p:
+        p.map(create_thumbnail, data)
+
+    print("Total: {0} thumbnails of size {1}x{1} were created, {2} skipped".format(thumbnail_counter, thumbnail_size, skip_counter))
 
 
 class DownloadSession:
