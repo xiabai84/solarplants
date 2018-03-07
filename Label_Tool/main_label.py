@@ -182,15 +182,12 @@ class LabelTool():
         if user_filter > 0:
             user_count = len(self.listbox_names)
             fullList = self.imageList
-            print(self.listbox_names)
             parts = user_count * (user_count-1) // 2
             imageListSteps = [int(float(len(fullList)) / parts * s) for s in range(0, parts + 1)]
-            print(imageListSteps)
 
             self.imageList = []
             for i in get_cross_label_matrix(user_count)[user_filter - 1]:
                 self.imageList.extend(fullList[imageListSteps[i]:imageListSteps[i+1]])
-                print(len(self.imageList))
             del fullList
 
         if len(self.imageList) == 0:
