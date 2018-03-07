@@ -32,7 +32,7 @@ class LabelTool():
 
         # initialize global state
         self.imageDir = ''
-        self.imageList= []
+        self.imageList = []
         self.egDir = ''
         self.egList = []
         self.outDir = ''
@@ -140,7 +140,45 @@ class LabelTool():
 ##            return
         # get image list
         self.imageDir = os.path.join(r'./Images', self.category)
-        self.imageList = glob.glob(os.path.join(self.imageDir, '*.png'))
+        self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
+
+        # Emmanuel: 1
+        # +++___
+        # Jasper: 2
+        # +__++_
+        # Lennart: 3
+        # _+_+_+
+        # Matthias: 4
+        # __+_++
+        user_filter = 0
+
+        if user_filter > 0:
+            imageListSteps = [int(0)] + [int(len(self.imageList) / 6. * s) for s in range(1,6)] + [len(self.imageList)]
+            if user_filter == 1:
+                self.imageList = (
+                        self.imageList[imageListSteps[0]:imageListSteps[1]]
+                        + self.imageList[imageListSteps[1]:imageListSteps[2]]
+                        + self.imageList[imageListSteps[2]:imageListSteps[3]]
+                )
+            elif user_filter == 2:
+                self.imageList = (
+                        self.imageList[imageListSteps[0]:imageListSteps[1]]
+                        + self.imageList[imageListSteps[3]:imageListSteps[4]]
+                        + self.imageList[imageListSteps[4]:imageListSteps[5]]
+                )
+            elif user_filter == 3:
+                self.imageList = (
+                        self.imageList[imageListSteps[1]:imageListSteps[2]]
+                        + self.imageList[imageListSteps[3]:imageListSteps[4]]
+                        + self.imageList[imageListSteps[5]:imageListSteps[6]]
+                )
+            elif user_filter == 4:
+                self.imageList = (
+                        self.imageList[imageListSteps[2]:imageListSteps[3]]
+                        + self.imageList[imageListSteps[4]:imageListSteps[5]]
+                        + self.imageList[imageListSteps[5]:imageListSteps[6]]
+                )
+
         if len(self.imageList) == 0:
             print('No .png images found in the specified dir!')
             return
