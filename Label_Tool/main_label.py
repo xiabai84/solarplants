@@ -95,9 +95,9 @@ class LabelTool():
         self.parent.bind("<Escape>", self.cancelBBox)  # press <Espace> to cancel current bbox
         self.parent.bind("s", self.cancelBBox)
         self.parent.bind("<BackSpace>", self.prevImage) # press '<BackSpace>' to go backforward
-        self.parent.bind("0", self.nextImageF) # press 'd' to go forward
-        self.parent.bind("1", self.nextImageT)
-        self.parent.bind("2", self.nextImageU)
+        self.parent.bind("0", lambda ev: self.nextImage('0', ev)) # press 'd' to go forward
+        self.parent.bind("1", lambda ev: self.nextImage('1', ev))
+        self.parent.bind("2", lambda ev: self.nextImage('2', ev))
         self.mainPanel.grid(row = 1, column = 1, rowspan = 4, sticky = W+N)
 
         # showing bbox info & delete bbox
@@ -115,11 +115,11 @@ class LabelTool():
         self.ctrPanel.grid(row = 5, column = 1, columnspan = 2, sticky = W+E)
         self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
         self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnU = Button(self.ctrPanel, text='2', width = 10, command = self.nextImageU)
+        self.nextBtnU = Button(self.ctrPanel, text='2', width = 10, command=lambda: self.nextImage('2'))
         self.nextBtnU.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnT = Button(self.ctrPanel, text='1', width = 10, command = self.nextImageT)
+        self.nextBtnT = Button(self.ctrPanel, text='1', width = 10, command=lambda: self.nextImage('1'))
         self.nextBtnT.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnF = Button(self.ctrPanel, text='0', width = 10, command = self.nextImageF)
+        self.nextBtnF = Button(self.ctrPanel, text='0', width = 10, command=lambda: self.nextImage('0'))
         self.nextBtnF.pack(side = LEFT, padx = 5, pady = 3)
         self.progLabel = Label(self.ctrPanel, text = "Progress:     /    ")
         self.progLabel.pack(side = LEFT, padx = 5)
@@ -321,27 +321,9 @@ class LabelTool():
             self.cur -= 1
             self.loadImage()
 
-    def nextImageT(self, event = None):
-        #self.saveImage()
+    def nextImage(self, label, event=None):
         with open('labels.csv', 'a') as csvfile:
-            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), '1']) + '\n')
-        if self.cur < self.total:
-            self.cur += 1
-            self.loadImage()
-
-    def nextImageF(self, event = None):
-        #self.saveImage()
-        with open('labels.csv', 'a') as csvfile:
-            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), '0']) + '\n')
-        if self.cur < self.total:
-            self.cur += 1
-            self.loadImage()
-
-    def nextImageU(self, event = None):
-        #self.saveImage()
-        with open('labels.csv', 'a') as csvfile:
-            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), '2']) + '\n')
-        #self.writeToFile(self.imageList[self.cur],2)
+            csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), label]) + '\n')
         if self.cur < self.total:
             self.cur += 1
             self.loadImage()
