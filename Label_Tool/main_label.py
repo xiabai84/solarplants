@@ -62,8 +62,15 @@ class LabelTool():
         self.entry = Entry(self.frame)
         self.entry.grid(row = 0, column = 1, sticky = W+E)
         self.entry.insert(0, '../../images')
+        self.listbox_names = sorted(['Emmanuel', 'Jasper', 'Lennart', 'Matthias'])
+        self.name_listbox = Listbox(self.frame, selectmode=SINGLE, height=1+len(self.listbox_names))
+        self.name_listbox.grid(row = 0, column = 2, sticky = W+E)
+        self.name_listbox.insert(END, '-- No User --')
+        self.name_listbox.selection_set(0)
+        for name in self.listbox_names:
+            self.name_listbox.insert(END, name)
         self.ldBtn = Button(self.frame, text = "Load", command = self.loadDir)
-        self.ldBtn.grid(row = 0, column = 2, sticky = W+E)
+        self.ldBtn.grid(row = 0, column = 3, sticky = W+E)
 
         # main panel for labeling
         self.mainPanel = Canvas(self.frame, cursor='tcross')
@@ -150,10 +157,18 @@ class LabelTool():
         # _+_+_+
         # Matthias: 4
         # __+_++
-        user_filter = 0
+        user_filter = self.name_listbox.curselection()[0]
+        if type(user_filter != int):
+            user_filter = int(user_filter)
 
         if user_filter > 0:
-            imageListSteps = [int(0)] + [int(len(self.imageList) / 6. * s) for s in range(1,6)] + [len(self.imageList)]
+            user_count = len(self.listbox_names)
+            parts = user_count * (user_count-1) // 2
+            imageListSteps = [int(float(user_count) / parts * s) for s in range(0, parts + 1)]
+
+            # Hardcoded for 4 users, TODO: make flexible list for arbitrary number of users
+            if user_count != 4:
+                raise ValueError('Only exactly 4 users are supported right now')
             if user_filter == 1:
                 self.imageList = (
                         self.imageList[imageListSteps[0]:imageListSteps[1]]
