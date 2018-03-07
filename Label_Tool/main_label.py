@@ -21,6 +21,22 @@ COLORS = ['red', 'blue', 'yellow', 'pink', 'cyan', 'green', 'black']
 # image sizes for the examples
 SIZE = 256, 256
 
+
+# Every image should be labeled by two users, and every pair or users should have the same number of shared images.
+# Divide the list of images into users*(users-1)/2 parts. Then, this function will tell which part should be asigned to
+# each user. Each entry of the "matrix" is a list of indices that correspond to the parts.
+def get_cross_label_matrix(users):
+    if users <= 2:
+        return [[0], [0]]
+    else:
+        new_width = users * (users - 1) // 2
+        matrix = get_cross_label_matrix(users - 1)
+        for i in range(len(matrix)):
+            matrix[i].append(new_width - 1 - i)
+        matrix.append([i for i in range(new_width - users + 1, new_width)])
+        return matrix
+
+
 class LabelTool():
     def __init__(self, master):
         # set up the main frame
@@ -149,50 +165,23 @@ class LabelTool():
         self.imageDir = os.path.join(r'./Images', self.category)
         self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
 
-        # Emmanuel: 1
-        # +++___
-        # Jasper: 2
-        # +__++_
-        # Lennart: 3
-        # _+_+_+
-        # Matthias: 4
-        # __+_++
         user_filter = self.name_listbox.curselection()[0]
         if type(user_filter != int):
             user_filter = int(user_filter)
 
         if user_filter > 0:
             user_count = len(self.listbox_names)
+            fullList = self.imageList
+            print(self.listbox_names)
             parts = user_count * (user_count-1) // 2
-            imageListSteps = [int(float(user_count) / parts * s) for s in range(0, parts + 1)]
+            imageListSteps = [int(float(len(fullList)) / parts * s) for s in range(0, parts + 1)]
+            print(imageListSteps)
 
-            # Hardcoded for 4 users, TODO: make flexible list for arbitrary number of users
-            if user_count != 4:
-                raise ValueError('Only exactly 4 users are supported right now')
-            if user_filter == 1:
-                self.imageList = (
-                        self.imageList[imageListSteps[0]:imageListSteps[1]]
-                        + self.imageList[imageListSteps[1]:imageListSteps[2]]
-                        + self.imageList[imageListSteps[2]:imageListSteps[3]]
-                )
-            elif user_filter == 2:
-                self.imageList = (
-                        self.imageList[imageListSteps[0]:imageListSteps[1]]
-                        + self.imageList[imageListSteps[3]:imageListSteps[4]]
-                        + self.imageList[imageListSteps[4]:imageListSteps[5]]
-                )
-            elif user_filter == 3:
-                self.imageList = (
-                        self.imageList[imageListSteps[1]:imageListSteps[2]]
-                        + self.imageList[imageListSteps[3]:imageListSteps[4]]
-                        + self.imageList[imageListSteps[5]:imageListSteps[6]]
-                )
-            elif user_filter == 4:
-                self.imageList = (
-                        self.imageList[imageListSteps[2]:imageListSteps[3]]
-                        + self.imageList[imageListSteps[4]:imageListSteps[5]]
-                        + self.imageList[imageListSteps[5]:imageListSteps[6]]
-                )
+            self.imageList = []
+            for i in get_cross_label_matrix(user_count)[user_filter - 1]:
+                self.imageList.extend(fullList[imageListSteps[i]:imageListSteps[i+1]])
+                print(len(self.imageList))
+            del fullList
 
         if len(self.imageList) == 0:
             print('No .png images found in the specified dir!')
