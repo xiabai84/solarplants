@@ -9,6 +9,7 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 from keras.utils import plot_model
 from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
 import datetime
@@ -21,16 +22,16 @@ import matplotlib.pylab as plt
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 144
+batch_size = 16
 num_classes = 2
-epochs = 120
+epochs = 60
 loss_function = keras.losses.categorical_crossentropy
 
 # input image dimensions
-image_pixels = 64
+image_pixels = 128
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs128', image_pixels,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -93,10 +94,13 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(256, (3, 3), activation='relu', padding='same'))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+model.add(Dropout(dropout_ratio))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 model.add(Dropout(dropout_ratio))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 model.add(Flatten())
@@ -104,7 +108,7 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
-#model.load_weights('2018-03-06_11-15 cnntest.h5')
+#model.load_weights('2018-03-07_18-09 cnntest_weights.h5')
 
 # This number does not change any calculation, just the labels in the plots
 resume_from_epoch = 0
@@ -122,7 +126,7 @@ model.compile(loss=loss_function,
 datagen = ImageDataGenerator(
     featurewise_center=True,
     featurewise_std_normalization=True,
-    #rotation_range=10,
+    rotation_range=10,
     width_shift_range=0.1,
     height_shift_range=0.1,
     horizontal_flip=True
@@ -146,12 +150,22 @@ datagen_valid = ImageDataGenerator(
 )
 datagen_valid.fit(x_validation)
 
+now = datetime.datetime.now()
+model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
+    .format(now.year, now.month, now.day, now.hour, now.minute)
+
+# define the checkpoint
+checkpoint_filepath = model_filename + "_weights{epoch:02d}-{loss:.4f}.h5"
+checkpoint = ModelCheckpoint(checkpoint_filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+callbacks_list = [checkpoint]
+
 fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
                                   steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs+resume_from_epoch,
                                   validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
                                   validation_steps=x_validation.shape[0]//batch_size,
                                   verbose=2,
-                                  initial_epoch=resume_from_epoch)
+                                  initial_epoch=resume_from_epoch,
+                                  callbacks=callbacks_list)
 
 # Without generator:
 #model.fit(x_train, y_train,
@@ -164,10 +178,6 @@ fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batc
 # plt.xlabel('Epochs')
 # plt.ylabel('Accuracy')
 # plt.show()
-
-now = datetime.datetime.now()
-model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
-    .format(now.year, now.month, now.day, now.hour, now.minute)
 
 model.save(model_filename + '_weights.h5')
 
