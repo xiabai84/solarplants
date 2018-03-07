@@ -6,9 +6,13 @@
 
 #
 #-------------------------------------------------------------------------------
+try:
+    from Tkinter import *
+    import Tkinter.messagebox ## Python 2.x
+except ImportError:
+    from tkinter import *
+    import tkinter.messagebox ## Python 3.x
 
-from tkinter import *
-import tkinter.messagebox
 from PIL import Image, ImageTk
 import os
 import glob
@@ -98,6 +102,8 @@ class LabelTool():
         self.parent.bind("0", lambda ev: self.nextImage('0', ev)) # press 'd' to go forward
         self.parent.bind("1", lambda ev: self.nextImage('1', ev))
         self.parent.bind("2", lambda ev: self.nextImage('2', ev))
+        self.parent.bind("3", lambda ev: self.nextImage('3', ev))
+        self.parent.bind("4", lambda ev: self.nextImage('4', ev))
         self.mainPanel.grid(row = 1, column = 1, rowspan = 4, sticky = W+N)
 
         # showing bbox info & delete bbox
@@ -115,6 +121,10 @@ class LabelTool():
         self.ctrPanel.grid(row = 5, column = 1, columnspan = 2, sticky = W+E)
         self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
         self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
+        self.nextBtnA = Button(self.ctrPanel, text='4', width = 10, command=lambda: self.nextImage('4'))
+        self.nextBtnA.pack(side = LEFT, padx = 5, pady = 3)
+        self.nextBtnB = Button(self.ctrPanel, text='3', width = 10, command=lambda: self.nextImage('3'))
+        self.nextBtnB.pack(side = LEFT, padx = 5, pady = 3)
         self.nextBtnU = Button(self.ctrPanel, text='2', width = 10, command=lambda: self.nextImage('2'))
         self.nextBtnU.pack(side = LEFT, padx = 5, pady = 3)
         self.nextBtnT = Button(self.ctrPanel, text='1', width = 10, command=lambda: self.nextImage('1'))
