@@ -171,7 +171,6 @@ class LabelTool():
 ##        self.setImage()
 ##        self.loadDir()
 
-
     @staticmethod
     def extract_username(filename):
         username = re.search(r'labels(\w*)\.csv', filename)
@@ -179,6 +178,23 @@ class LabelTool():
             return username.group(1)
         else:
             return ''
+
+    @staticmethod
+    def diff_to_file():
+        csv_filename = 'label_diff.csv'
+        if not os.path.isfile(csv_filename):
+            return
+        filelist_diff = [f.strip().split(',') for f in open(csv_filename).readlines() if f.strip()]
+        filelist_diff = {f[0]: f[1] for f in filelist_diff}
+        csv_filelist = glob.glob('labels*.csv')
+        for file1 in csv_filelist:
+            filelist1 = [f.strip().split(',') for f in open(file1).readlines() if f.strip()]
+            upd_file = open(file1, 'w')
+            for label in filelist1:
+                if label[0] in filelist_diff:
+                    label[1] = filelist_diff[label[0]]
+                upd_file.write(label[0] + ',' + label[1] + '\n')
+            upd_file.close()
 
     def label_diff(self):
         csv_filelist = glob.glob('labels*.csv')
