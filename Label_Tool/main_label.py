@@ -14,9 +14,6 @@ except ImportError:
 from PIL import Image, ImageTk
 import os
 import glob
-import random
-import pandas as pd
-import csv
 from itertools import combinations
 import re
 
@@ -187,6 +184,7 @@ class LabelTool():
         self.imageDir = self.entry.get().strip()
         self.category = self.imageDir
         self.imageList = []
+        self.diffList = []
         self.csv_filename = 'label_diff.csv'
         for file1, file2 in combinations(csv_filelist, 2):
             username1 = self.extract_username(file1)
@@ -198,7 +196,7 @@ class LabelTool():
             filelist2 = {f[0]: f[1] for f in filelist2 if f[0] in common_files}
             for file in common_files:
                 if filelist1[file] != filelist2[file]:
-                    self.imageList.append(file)
+                    self.imageList.append(os.path.join(self.imageDir, file))
                     self.diffList.append('{}: {}\n{}: {}'.format(username1, filelist1[file], username2, filelist2[file]))
 
         if not self.imageList:
@@ -221,6 +219,8 @@ class LabelTool():
             # get image list
             self.imageDir = self.category
             self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
+
+            self.diffList = []
 
             if self.name_listbox.curselection():
                 user_filter = self.name_listbox.curselection()[0]
@@ -247,8 +247,12 @@ class LabelTool():
                 print('No .png images found in the specified dir!')
                 return
 
-        # default to the 1st image in the collection
-        self.cur = 1
+        try:
+            self.cur = len([line for line in open(self.csv_filename).readlines() if line.strip()]) + 1
+            print('Existing labels found, continue from image ' + str(self.cur))
+        except FileNotFoundError:
+            # default to the 1st image in the collection
+            self.cur = 1
         self.total = len(self.imageList)
 
         self.loadImage()
@@ -366,9 +370,8 @@ class LabelTool():
 
     def prevImage(self, event = None):
         #self.saveImage()
-        df = pd.read_csv(self.csv_filename)
-        df.drop(df.tail(1).index, inplace=True)
-        df.to_csv(self.csv_filename, index=False)
+        df = [line for line in open(self.csv_filename).readlines() if line.strip()]
+        open(self.csv_filename, 'w').writelines(df[:-1])
         if self.cur > 1:
             self.cur -= 1
             self.loadImage()
