@@ -185,7 +185,7 @@ class LabelTool():
         print('Running diff over:')
         print(csv_filelist)
         if len(csv_filelist) < 2:
-            self.diff_label_text.set('Need more files for diff')
+            self.diff_label_text.set('Need 2 or more\nCSV files for diff')
             return
         self.imageDir = self.entry.get().strip()
         self.category = self.imageDir
