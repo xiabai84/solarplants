@@ -212,12 +212,21 @@ class LabelTool():
             filelist1 = {f[0]: f[1] for f in filelist1 if f[0] in common_files}
             filelist2 = {f[0]: f[1] for f in filelist2 if f[0] in common_files}
             common_files = sorted(common_files)
+            different_label_counter = 0
             for file in common_files:
                 if filelist1[file] != filelist2[file]:
                     self.imageList.append(os.path.join(self.imageDir, file))
                     self.diffList.append('{}: {}\n{}: {}'.format(username1, filelist1[file], username2, filelist2[file]))
+                    different_label_counter += 1
                 else:
                     csv_file.write(file + ',' + filelist1[file] + '\n')
+            print('{} different labels (out of {}, {}%) for {} and {}'.format(
+                different_label_counter,
+                len(common_files),
+                round(float(different_label_counter)/len(common_files)*100., 1),
+                username1,
+                username2
+            ))
         csv_file.close()
 
         if not self.imageList:
