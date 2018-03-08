@@ -25,7 +25,7 @@ SIZE = 256, 256
 
 
 # Every image should be labeled by two users, and every pair or users should have the same number of shared images.
-# Divide the list of images into users*(users-1)/2 parts. Then, this function will tell which part should be asigned to
+# Divide the list of images into users*(users-1)/2 parts. Then, this function will tell which part should be assigned to
 # each user. Each entry of the "matrix" is a list of indices that correspond to the parts.
 def get_cross_label_matrix(users):
     if users <= 2:
@@ -51,6 +51,7 @@ class LabelTool():
         # initialize global state
         self.imageDir = ''
         self.imageList = []
+        self.ten_percent_outline = None
         self.egDir = ''
         self.egList = []
         self.outDir = ''
@@ -141,8 +142,12 @@ class LabelTool():
         # example pannel for illustration
         self.egPanel = Frame(self.frame, border = 10)
         self.egPanel.grid(row = 1, column = 0, rowspan = 5, sticky = N)
-        self.tmpLabel2 = Label(self.egPanel, text = "Examples:")
+        self.tmpLabel2 = Label(self.egPanel, text = "Options:")
         self.tmpLabel2.pack(side = TOP, pady = 5)
+        self.show_ten_percent = IntVar()
+        self.show_ten_percent_button = Checkbutton(self.egPanel, text='Show 10% outline', variable=self.show_ten_percent)
+        self.show_ten_percent_button.select()
+        self.show_ten_percent_button.pack(side=TOP)
         self.egLabels = []
         for i in range(3):
             self.egLabels.append(Label(self.egPanel))
@@ -239,6 +244,19 @@ class LabelTool():
         self.mainPanel.config(width = max(self.tkimg.width(), 400), height = max(self.tkimg.height(), 400))
         self.mainPanel.create_image(0, 0, image = self.tkimg, anchor=NW)
         self.progLabel.config(text = "%04d/%04d" %(self.cur, self.total))
+
+        # add/remove 10% outline
+        if self.ten_percent_outline:
+            self.mainPanel.delete(self.ten_percent_outline)
+            self.ten_percent_outline = None
+
+        if self.show_ten_percent.get():
+            self.ten_percent_outline = self.mainPanel.create_rectangle(
+                self.img.width // 10, self.img.height // 10,
+                self.img.width - (self.img.width // 10), self.img.height - (self.img.height // 10),
+                width=1,
+                outline='pink'
+            )
 
         # load labels
         self.clearBBox()
