@@ -17,6 +17,8 @@ import glob
 import random
 import pandas as pd
 import csv
+from itertools import combinations
+import re
 
 # colors for the bboxes
 COLORS = ['red', 'blue', 'yellow', 'pink', 'cyan', 'green', 'black']
@@ -51,6 +53,7 @@ class LabelTool():
         # initialize global state
         self.imageDir = ''
         self.imageList = []
+        self.diffList = []
         self.ten_percent_outline = None
         self.egDir = ''
         self.egList = []
@@ -148,10 +151,12 @@ class LabelTool():
         self.show_ten_percent_button = Checkbutton(self.egPanel, text='Show 10% outline', variable=self.show_ten_percent)
         self.show_ten_percent_button.select()
         self.show_ten_percent_button.pack(side=TOP)
+        self.diff_button = Button(self.egPanel, text="Diff labels*.csv", command=self.label_diff)
+        self.diff_button.pack(side=TOP, pady=5)
+        self.diff_label_text = StringVar()
+        self.diff_label = Label(self.egPanel, textvariable=self.diff_label_text, anchor=E, justify=LEFT)
+        self.diff_label.pack(side=TOP)
         self.egLabels = []
-        for i in range(3):
-            self.egLabels.append(Label(self.egPanel))
-            self.egLabels[-1].pack(side = TOP)
 
         # display mouse position
         self.disp = Label(self.ctrPanel, text='')
@@ -166,75 +171,88 @@ class LabelTool():
 ##        self.setImage()
 ##        self.loadDir()
 
-    def loadDir(self, dbg = False):
-        if not dbg:
-            s = self.entry.get()
-            self.parent.focus()
-            self.category = s.strip()
+
+    @staticmethod
+    def extract_username(filename):
+        username = re.search(r'labels(\w*)\.csv', filename)
+        if username:
+            return username.group(1)
         else:
-            s = r'D:\workspace\python\labelGUI'
-##        if not os.path.isdir(s):
-##            tkMessageBox.showerror("Error!", message = "The specified dir doesn't exist!")
-##            return
-        # get image list
-        self.imageDir = os.path.join(r'./Images', self.category)
-        self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
+            return ''
 
-        if self.name_listbox.curselection():
-            user_filter = self.name_listbox.curselection()[0]
+    def label_diff(self):
+        csv_filelist = glob.glob('labels*.csv')
+        print('Running diff over:')
+        print(csv_filelist)
+        self.imageDir = self.entry.get().strip()
+        self.category = self.imageDir
+        self.imageList = []
+        self.csv_filename = 'label_diff.csv'
+        for file1, file2 in combinations(csv_filelist, 2):
+            username1 = self.extract_username(file1)
+            username2 = self.extract_username(file2)
+            filelist1 = [f.strip().split(',') for f in open(file1).readlines()]
+            filelist2 = [f.strip().split(',') for f in open(file2).readlines()]
+            common_files = set([f[0] for f in filelist1]) & set([f[0] for f in filelist2])
+            filelist1 = {f[0]: f[1] for f in filelist1 if f[0] in common_files}
+            filelist2 = {f[0]: f[1] for f in filelist2 if f[0] in common_files}
+            for file in common_files:
+                if filelist1[file] != filelist2[file]:
+                    self.imageList.append(file)
+                    self.diffList.append('{}: {}\n{}: {}'.format(username1, filelist1[file], username2, filelist2[file]))
+
+        if not self.imageList:
+            self.diff_label_text.set('No differences found')
+            print(self.diff_label_text.get())
         else:
-            user_filter = 0
-        if type(user_filter) != int:
-            user_filter = int(user_filter)
+            self.loadDir(diff=True)
 
-        if user_filter > 0:
-            self.csv_filename = 'labels' + self.listbox_names[user_filter - 1] + '.csv'
-            user_count = len(self.listbox_names)
-            fullList = self.imageList
-            parts = user_count * (user_count-1) // 2
-            imageListSteps = [int(float(len(fullList)) / parts * s) for s in range(0, parts + 1)]
+    def loadDir(self, dbg = False, diff=False):
+        if not diff:
+            if not dbg:
+                s = self.entry.get()
+                self.parent.focus()
+                self.category = s.strip()
+            else:
+                s = r'D:\workspace\python\labelGUI'
+    ##        if not os.path.isdir(s):
+    ##            tkMessageBox.showerror("Error!", message = "The specified dir doesn't exist!")
+    ##            return
+            # get image list
+            self.imageDir = self.category
+            self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
 
-            self.imageList = []
-            for i in get_cross_label_matrix(user_count)[user_filter - 1]:
-                self.imageList.extend(fullList[imageListSteps[i]:imageListSteps[i+1]])
-            del fullList
-        else:
-            self.csv_filename = 'labels.csv'
+            if self.name_listbox.curselection():
+                user_filter = self.name_listbox.curselection()[0]
+            else:
+                user_filter = 0
+            if type(user_filter) != int:
+                user_filter = int(user_filter)
 
-        if len(self.imageList) == 0:
-            print('No .png images found in the specified dir!')
-            return
+            if user_filter > 0:
+                self.csv_filename = 'labels' + self.listbox_names[user_filter - 1] + '.csv'
+                user_count = len(self.listbox_names)
+                fullList = self.imageList
+                parts = user_count * (user_count-1) // 2
+                imageListSteps = [int(float(len(fullList)) / parts * s) for s in range(0, parts + 1)]
+
+                self.imageList = []
+                for i in get_cross_label_matrix(user_count)[user_filter - 1]:
+                    self.imageList.extend(fullList[imageListSteps[i]:imageListSteps[i+1]])
+                del fullList
+            else:
+                self.csv_filename = 'labels.csv'
+
+            if len(self.imageList) == 0:
+                print('No .png images found in the specified dir!')
+                return
 
         # default to the 1st image in the collection
         self.cur = 1
         self.total = len(self.imageList)
 
-        bullshit_number = 1
-         # set up output dir
-        self.outDir = os.path.join(r'./Labels', '%03d' % bullshit_number)
-        if not os.path.exists(self.outDir):
-            os.mkdir(self.outDir)
-
-        # load example bboxes
-        self.egDir = os.path.join(r'./Examples', '%03d' % bullshit_number)
-        if not os.path.exists(self.egDir):
-            return
-        filelist = glob.glob(os.path.join(self.egDir, '*.JPEG'))
-        self.tmp = []
-        self.egList = []
-        random.shuffle(filelist)
-        for (i, f) in enumerate(filelist):
-            if i == 3:
-                break
-            im = Image.open(f)
-            r = min(SIZE[0] / im.size[0], SIZE[1] / im.size[1])
-            new_size = int(r * im.size[0]), int(r * im.size[1])
-            self.tmp.append(im.resize(new_size, Image.ANTIALIAS))
-            self.egList.append(ImageTk.PhotoImage(self.tmp[-1]))
-            self.egLabels[i].config(image = self.egList[-1], width = SIZE[0], height = SIZE[1])
-
         self.loadImage()
-        print('%d images loaded from %s' %(self.total, s))
+        print('%d images loaded from %s' %(self.total, self.imageDir))
 
     def loadImage(self):
         # load image
@@ -257,6 +275,9 @@ class LabelTool():
                 width=1,
                 outline='pink'
             )
+
+        if self.diffList:
+            self.diff_label_text.set(self.diffList[self.cur - 1])
 
         # load labels
         self.clearBBox()
