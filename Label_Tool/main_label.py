@@ -7,11 +7,9 @@
 #
 #-------------------------------------------------------------------------------
 try:
-    from Tkinter import *
-    #import Tkinter.messagebox ## Python 2.x
+    from Tkinter import *  # Python 2.x
 except ImportError:
-    from tkinter import *
-    import tkinter.messagebox ## Python 3.x
+    from tkinter import *  # Python 3.x
 
 from PIL import Image, ImageTk
 import os
@@ -121,15 +119,15 @@ class LabelTool():
         self.ctrPanel.grid(row = 5, column = 1, columnspan = 2, sticky = W+E)
         self.prevBtn = Button(self.ctrPanel, text='<< Prev', width = 10, command = self.prevImage)
         self.prevBtn.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnA = Button(self.ctrPanel, text='4', width = 10, command=lambda: self.nextImage('4'))
+        self.nextBtnA = Button(self.ctrPanel, text='4: Unsicher', width = 10, command=lambda: self.nextImage('4'))
         self.nextBtnA.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnB = Button(self.ctrPanel, text='3', width = 10, command=lambda: self.nextImage('3'))
+        self.nextBtnB = Button(self.ctrPanel, text='3: Beides', width = 10, command=lambda: self.nextImage('3'))
         self.nextBtnB.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnU = Button(self.ctrPanel, text='2', width = 10, command=lambda: self.nextImage('2'))
+        self.nextBtnU = Button(self.ctrPanel, text='2: Thermie', width = 10, command=lambda: self.nextImage('2'))
         self.nextBtnU.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnT = Button(self.ctrPanel, text='1', width = 10, command=lambda: self.nextImage('1'))
+        self.nextBtnT = Button(self.ctrPanel, text='1: Voltaik', width = 10, command=lambda: self.nextImage('1'))
         self.nextBtnT.pack(side = LEFT, padx = 5, pady = 3)
-        self.nextBtnF = Button(self.ctrPanel, text='0', width = 10, command=lambda: self.nextImage('0'))
+        self.nextBtnF = Button(self.ctrPanel, text='0: Gar nichts', width = 10, command=lambda: self.nextImage('0'))
         self.nextBtnF.pack(side = LEFT, padx = 5, pady = 3)
         self.progLabel = Label(self.ctrPanel, text = "Progress:     /    ")
         self.progLabel.pack(side = LEFT, padx = 5)
@@ -157,6 +155,8 @@ class LabelTool():
         self.frame.columnconfigure(1, weight = 1)
         self.frame.rowconfigure(4, weight = 1)
 
+        self.csv_filename = 'labels.csv'
+
         # for debugging
 ##        self.setImage()
 ##        self.loadDir()
@@ -175,11 +175,15 @@ class LabelTool():
         self.imageDir = os.path.join(r'./Images', self.category)
         self.imageList = sorted(glob.glob(os.path.join(self.imageDir, '*.png')))
 
-        user_filter = self.name_listbox.curselection()[0]
-        if type(user_filter != int):
+        if self.name_listbox.curselection():
+            user_filter = self.name_listbox.curselection()[0]
+        else:
+            user_filter = 0
+        if type(user_filter) != int:
             user_filter = int(user_filter)
 
         if user_filter > 0:
+            self.csv_filename = 'labels' + self.listbox_names[user_filter - 1] + '.csv'
             user_count = len(self.listbox_names)
             fullList = self.imageList
             parts = user_count * (user_count-1) // 2
@@ -189,6 +193,8 @@ class LabelTool():
             for i in get_cross_label_matrix(user_count)[user_filter - 1]:
                 self.imageList.extend(fullList[imageListSteps[i]:imageListSteps[i+1]])
             del fullList
+        else:
+            self.csv_filename = 'labels.csv'
 
         if len(self.imageList) == 0:
             print('No .png images found in the specified dir!')
@@ -321,15 +327,15 @@ class LabelTool():
 
     def prevImage(self, event = None):
         #self.saveImage()
-        df = pd.read_csv('labels.csv')
+        df = pd.read_csv(self.csv_filename)
         df.drop(df.tail(1).index, inplace=True)
-        df.to_csv('labels.csv', index=False)
+        df.to_csv(self.csv_filename, index=False)
         if self.cur > 1:
             self.cur -= 1
             self.loadImage()
 
     def nextImage(self, label, event=None):
-        with open('labels.csv', 'a') as csvfile:
+        with open(self.csv_filename, 'a') as csvfile:
             csvfile.write(','.join([os.path.basename(self.imageList[self.cur-1]), label]) + '\n')
         if self.cur < self.total:
             self.cur += 1
