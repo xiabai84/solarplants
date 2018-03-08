@@ -8,7 +8,7 @@
 #-------------------------------------------------------------------------------
 try:
     from Tkinter import *
-    import Tkinter.messagebox ## Python 2.x
+    #import Tkinter.messagebox ## Python 2.x
 except ImportError:
     from tkinter import *
     import tkinter.messagebox ## Python 3.x
