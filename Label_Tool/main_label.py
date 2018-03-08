@@ -80,7 +80,10 @@ class LabelTool():
         self.label.grid(row = 0, column = 0, sticky = E)
         self.entry = Entry(self.frame)
         self.entry.grid(row = 0, column = 1, sticky = W+E)
-        self.entry.insert(0, '../../images')
+        try:
+            self.entry.insert(0, open('lastfolder.txt').readline().strip())
+        except FileNotFoundError:
+            self.entry.insert(0, '../../images')
         self.listbox_names = sorted(['Emmanuel', 'Jasper', 'Lennart', 'Matthias'])
         self.name_listbox = Listbox(self.frame, selectmode=SINGLE, height=1+len(self.listbox_names))
         self.name_listbox.grid(row = 0, column = 2, sticky = W+E)
@@ -246,6 +249,8 @@ class LabelTool():
             if len(self.imageList) == 0:
                 print('No .png images found in the specified dir!')
                 return
+
+        open('lastfolder.txt', 'w').write(self.imageDir)
 
         try:
             self.cur = len([line for line in open(self.csv_filename).readlines() if line.strip()]) + 1
