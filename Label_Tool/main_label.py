@@ -184,6 +184,9 @@ class LabelTool():
         csv_filelist = glob.glob('labels*.csv')
         print('Running diff over:')
         print(csv_filelist)
+        if len(csv_filelist) < 2:
+            self.diff_label_text.set('Need more files for diff')
+            return
         self.imageDir = self.entry.get().strip()
         self.category = self.imageDir
         self.imageList = []
