@@ -189,6 +189,17 @@ class LabelTool():
         self.imageList = []
         self.diffList = []
         self.csv_filename = 'label_diff.csv'
+        if os.path.isfile(self.csv_filename):
+            backup_index = 0
+            while True:
+                backup_index += 1
+                target_name = 'label_diff' + str(backup_index) + '.csv'
+                # If the name doesn't exist, break the loop
+                if not os.path.isfile(target_name):
+                    break
+            os.rename(self.csv_filename, target_name)
+            print('Renamed existing diff file to ' + target_name)
+        csv_file = open(self.csv_filename, 'w')
         for file1, file2 in combinations(csv_filelist, 2):
             username1 = self.extract_username(file1)
             username2 = self.extract_username(file2)
@@ -197,10 +208,14 @@ class LabelTool():
             common_files = set([f[0] for f in filelist1]) & set([f[0] for f in filelist2])
             filelist1 = {f[0]: f[1] for f in filelist1 if f[0] in common_files}
             filelist2 = {f[0]: f[1] for f in filelist2 if f[0] in common_files}
+            common_files = sorted(common_files)
             for file in common_files:
                 if filelist1[file] != filelist2[file]:
                     self.imageList.append(os.path.join(self.imageDir, file))
                     self.diffList.append('{}: {}\n{}: {}'.format(username1, filelist1[file], username2, filelist2[file]))
+                else:
+                    csv_file.write(file + ',' + filelist1[file] + '\n')
+        csv_file.close()
 
         if not self.imageList:
             self.diff_label_text.set('No differences found')
@@ -209,6 +224,7 @@ class LabelTool():
             self.loadDir(diff=True)
 
     def loadDir(self, dbg = False, diff=False):
+        self.diff_label_text.set('')
         if not diff:
             if not dbg:
                 s = self.entry.get()
@@ -252,12 +268,14 @@ class LabelTool():
 
         open('lastfolder.txt', 'w').write(self.imageDir)
 
-        try:
-            self.cur = len([line for line in open(self.csv_filename).readlines() if line.strip()]) + 1
-            print('Existing labels found, continue from image ' + str(self.cur))
-        except FileNotFoundError:
-            # default to the 1st image in the collection
-            self.cur = 1
+        # default to the 1st image in the collection
+        self.cur = 1
+        if not diff:
+            try:
+                self.cur = len([line for line in open(self.csv_filename).readlines() if line.strip()]) + 1
+                print('Existing labels found, continue from image ' + str(self.cur))
+            except FileNotFoundError:
+                pass
         self.total = len(self.imageList)
 
         self.loadImage()
