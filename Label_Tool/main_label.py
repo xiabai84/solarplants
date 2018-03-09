@@ -56,8 +56,9 @@ class LabelTool:
 
         # main panel for labeling
         self.main_panel = Canvas(self.frame, cursor='tcross')
-        self.parent.bind("<BackSpace>", self.previous_image)  # press '<BackSpace>' to go backforward
-        # Keys 0 to 4 for the corresponding categories. Need dummy parameter _ for event
+        # Need dummy parameter _ for unused event
+        self.parent.bind("<BackSpace>", lambda _: self.previous_image())  # press '<BackSpace>' to go backforward
+        # Keys 0 to 4 for the corresponding categories
         self.parent.bind("0", lambda _: self.next_image('0'))
         self.parent.bind("1", lambda _: self.next_image('1'))
         self.parent.bind("2", lambda _: self.next_image('2'))
