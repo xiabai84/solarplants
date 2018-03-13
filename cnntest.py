@@ -22,7 +22,7 @@ import matplotlib.pylab as plt
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 256
+batch_size = 112
 num_classes = 2
 epochs = 60
 loss_function = keras.losses.categorical_crossentropy
@@ -31,9 +31,19 @@ loss_function = keras.losses.categorical_crossentropy
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'D:\Data\Dropbox (datareply)\imagepool\thumbs',
+
+def label_map(image_label):
+    if image_label == 1 or image_label == 3:
+        return True
+    else:
+        return False
+
+
+x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'images/dropbox/thumbs',
                                        image_pixels,
-                                       lambda label: label > 0,
+                                       label_map,
+                                       4,  # The "uncertain"/"exclude" label
+                                       equalize_labels=True,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -107,7 +117,7 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(num_classes, activation='softmax'))
 
 # Have an existing weights file? Load before compiling!
-#model.load_weights('2018-03-07_18-09 cnntest_weights.h5')
+#model.load_weights('2018-03-13_16-32 cnntest_weights.h5')
 
 # This number does not change any calculation, just the labels in the plots
 resume_from_epoch = 0

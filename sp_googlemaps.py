@@ -14,6 +14,7 @@ import hashlib
 import os
 import os.path
 from multiprocessing import Pool
+from random import random
 
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 BASE_URL_GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json?'
@@ -240,16 +241,16 @@ class DownloadSession:
         return image_filename
 
 
-def load_filenames(filenames_csv, skip_headline, skip_index=2):
+def load_filenames(filenames_csv, skip_headline, exclude_index=2):
     first_line_index = 0
     if skip_headline:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != skip_index]
+    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != exclude_index]
     return filenames
 
 
-def load_data(filenames_csv, folder, image_size, label_map=bool, **kwargs):
+def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=2, **kwargs):
 
     options = {
         'skip_headline': True,
@@ -258,12 +259,36 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, **kwargs):
         'YCbCr': False,
         'featurewise_center': False,
         'featurewise_std_normalization': False,
+        'equalize_labels': False,
     }
     options.update(kwargs)
 
-    filenames = load_filenames(filenames_csv, options['skip_headline'], 4)
+    filenames = load_filenames(filenames_csv, options['skip_headline'], exclude_index)
 
+    filenames = [(f[0], label_map(f[1])) for f in filenames]
     sample_count = len(filenames)
+    if options['equalize_labels']:
+        true_count = 0
+        false_count = 0
+        for f in filenames:
+            if f[1]:
+                true_count += 1
+            else:
+                false_count += 1
+        if true_count != false_count:
+            if true_count > false_count:
+                pass_value = False
+                pass_probability = float(false_count) / float(true_count)
+            else:
+                pass_value = True
+                pass_probability = float(true_count) / float(false_count)
+            print("Equalization: throwing out {:.1f}% of pictures that are not '{}'".format(100.*(1.-pass_probability), pass_value))
+            # print(len(filenames))
+            filenames = [f for f in filenames if f[1] == pass_value or random() <= pass_probability]
+            print("Total number of samples reduced from {} to {}".format(sample_count, len(filenames)))
+            sample_count = len(filenames)
+            # print(len(filenames))
+
     image_versions = 1
     if options['horizontal_flip']:
         sample_count += len(filenames)
@@ -314,7 +339,7 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, **kwargs):
                     image[x, y, :] = rgb2ycbcr.dot(image[x, y, :])+rgb2ycbcr_shift
 
         images_x[image_versions * i, :, :, :] = image / 255.
-        images_y[image_versions * i] = label_map(f[1])
+        images_y[image_versions * i] = bool(f[1])
 
     if options['featurewise_center']:
         for channel in range(3):
@@ -370,7 +395,7 @@ def fix_filenames(filenames_csv, folder, **kwargs):
     return renames
 
 
-def mode_predict(model, filenames_csv, folder, image_size):
+def model_predict(model, filenames_csv, folder, image_size):
     x_all, y_all = load_data(filenames_csv, folder, image_size,
                       skip_headline=False,
                       featurewise_center=True,
@@ -383,4 +408,4 @@ def mode_predict(model, filenames_csv, folder, image_size):
     #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_neg', filenames[i][0]))
     #    if (not y_all[i]) and y_predict_labels[i]:
     #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_pos', filenames[i][0]))
-    return y_predict_labels
+    return y_predict, y_predict_labels
