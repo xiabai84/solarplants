@@ -240,16 +240,16 @@ class DownloadSession:
         return image_filename
 
 
-def load_filenames(filenames_csv, skip_headline):
+def load_filenames(filenames_csv, skip_headline, skip_index=2):
     first_line_index = 0
     if skip_headline:
         first_line_index = 1
     filenames = [f.split(',') for f in open(filenames_csv, encoding='latin-1').readlines()[first_line_index:] if f.strip()]
-    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != 2]
+    filenames = [(f[0], int(f[1])) for f in filenames if int(f[1]) != skip_index]
     return filenames
 
 
-def load_data(filenames_csv, folder, image_size, **kwargs):
+def load_data(filenames_csv, folder, image_size, label_map=bool, **kwargs):
 
     options = {
         'skip_headline': True,
@@ -261,7 +261,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
     }
     options.update(kwargs)
 
-    filenames = load_filenames(filenames_csv, options['skip_headline'])
+    filenames = load_filenames(filenames_csv, options['skip_headline'], 4)
 
     sample_count = len(filenames)
     image_versions = 1
@@ -314,7 +314,7 @@ def load_data(filenames_csv, folder, image_size, **kwargs):
                     image[x, y, :] = rgb2ycbcr.dot(image[x, y, :])+rgb2ycbcr_shift
 
         images_x[image_versions * i, :, :, :] = image / 255.
-        images_y[image_versions * i] = bool(f[1])
+        images_y[image_versions * i] = label_map(f[1])
 
     if options['featurewise_center']:
         for channel in range(3):

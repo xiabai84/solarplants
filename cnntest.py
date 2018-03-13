@@ -22,7 +22,7 @@ import matplotlib.pylab as plt
 #import importlib
 #importlib.reload(sp_googlemaps)
 
-batch_size = 112
+batch_size = 256
 num_classes = 2
 epochs = 60
 loss_function = keras.losses.categorical_crossentropy
@@ -31,7 +31,9 @@ loss_function = keras.losses.categorical_crossentropy
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/labelpool.csv', 'images/dropbox/thumbs', image_pixels,
+x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'D:\Data\Dropbox (datareply)\imagepool\thumbs',
+                                       image_pixels,
+                                       lambda label: label > 0,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
@@ -126,7 +128,7 @@ datagen = ImageDataGenerator(
     rotation_range=10,
     width_shift_range=0.1,
     height_shift_range=0.1,
-    horizontal_flip=True
+    horizontal_flip=True,
 )
 
 # Use fit to get proper featurewise_center and featurewise_std_normalization
