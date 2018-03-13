@@ -128,6 +128,7 @@ datagen = ImageDataGenerator(
     rotation_range=10,
     width_shift_range=0.1,
     height_shift_range=0.1,
+    fill_mode='reflect',
     horizontal_flip=True,
 )
 
@@ -135,9 +136,11 @@ datagen = ImageDataGenerator(
 datagen.fit(x_train)
 # Generate and save n*32 sample images
 flow_countdown = 0
-while flow_countdown > 0:
-    (x_gen,y_gen) = datagen.flow(x_train, y_train, save_to_dir='images/kerasgenerated', batch_size=32)
-    flow_countdown -= 1
+if flow_countdown:
+    for x_gen, y_gen in datagen.flow(x_train, y_train, save_to_dir='images/kerasgenerated', batch_size=32):
+        flow_countdown -= 1
+        if not flow_countdown:
+            break
 
 datagen_valid = ImageDataGenerator(
     featurewise_center=True,
