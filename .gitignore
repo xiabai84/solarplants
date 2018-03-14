@@ -8,3 +8,4 @@ Label_Tool/*.csv
 plotmodel.py
 model.png
 Label_Tool/lastfolder.txt
+*.h5

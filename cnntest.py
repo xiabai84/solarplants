@@ -3,15 +3,11 @@
 #os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import keras
-from keras import layers
-from keras.layers import Dense, Flatten, Dropout
-from keras.layers import Conv2D, MaxPooling2D
-from keras.models import Sequential
-from keras.utils import plot_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import ModelCheckpoint
 from sklearn.model_selection import train_test_split
 import sp_googlemaps
+import sp_model
 import datetime
 import matplotlib as mpl
 mpl.use('Agg')
@@ -30,6 +26,25 @@ loss_function = keras.losses.categorical_crossentropy
 # input image dimensions
 image_pixels = 64
 img_x, img_y = image_pixels, image_pixels
+input_shape = (img_x, img_y, 3)
+
+# Use dropout to reduce overfitting
+# http://www.jmlr.org/papers/volume15/srivastava14a.old/srivastava14a.pdf
+dropout_ratio = 0.3
+
+# Have an existing weights file? Load before compiling!
+weight_file = None
+#weight_file = '2018-03-13_16-32 cnntest_weights.h5'
+
+model = sp_model.build_model(input_shape, dropout_ratio, (64, 64, 64, 64), num_classes,
+                             loss_function, (256,), weight_file)
+
+# This number does not change any calculation, just the labels in the plots
+resume_from_epoch = 0
+
+model.compile(loss=loss_function,
+              optimizer=keras.optimizers.Adam(),
+              metrics=['accuracy'])
 
 
 def label_map(image_label):
@@ -47,7 +62,7 @@ x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'images/dr
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
-                                       YCbCr=False, #'BT601'/'JPEG'
+                                       YCbCr=False,  # 'BT601'/'JPEG'
                                        featurewise_center=False,
                                        featurewise_std_normalization=False)
 
@@ -72,8 +87,6 @@ if validation_ratio > 0:
     x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=validation_ratio)
     validation_samples = y_validation.shape[0]
 
-input_shape = (img_x, img_y, 3)
-
 # convert the data to the right type
 print('x_all shape:', x_all.shape)
 print('y_all shape:', y_all.shape)
@@ -91,40 +104,6 @@ if y_test is not None:
     y_test = keras.utils.to_categorical(y_test, num_classes)
 
 #print(y_train)
-
-# Use dropout to reduce overfitting
-# http://www.jmlr.org/papers/volume15/srivastava14a.old/srivastava14a.pdf
-dropout_ratio = 0.3
-
-model = Sequential()
-model.add(Conv2D(64, kernel_size=(3, 3),
-                 padding='same',
-                 activation='relu',
-                 input_shape=input_shape))
-model.add(Dropout(dropout_ratio))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(dropout_ratio))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(dropout_ratio))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
-model.add(Dropout(dropout_ratio))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Flatten())
-model.add(Dense(256, activation='relu'))
-model.add(Dense(num_classes, activation='softmax'))
-
-# Have an existing weights file? Load before compiling!
-#model.load_weights('2018-03-13_16-32 cnntest_weights.h5')
-
-# This number does not change any calculation, just the labels in the plots
-resume_from_epoch = 0
-
-model.compile(loss=loss_function,
-              optimizer=keras.optimizers.Adam(),
-              metrics=['accuracy'])
 
 
 # Creates scheme of the model

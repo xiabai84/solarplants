@@ -393,19 +393,3 @@ def fix_filenames(filenames_csv, folder, **kwargs):
                     dir_contents.remove(existing_file)
                     break
     return renames
-
-
-def model_predict(model, filenames_csv, folder, image_size):
-    x_all, y_all = load_data(filenames_csv, folder, image_size,
-                      skip_headline=False,
-                      featurewise_center=True,
-                      featurewise_std_normalization=True)
-    y_predict = model.predict(x_all)
-    y_predict_labels = np.argmax(y_predict, 1).astype('bool')
-
-    #for i in range(y_predict_labels.shape[0]):
-    #    if y_all[i] and (not y_predict_labels[i]):
-    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_neg', filenames[i][0]))
-    #    if (not y_all[i]) and y_predict_labels[i]:
-    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_pos', filenames[i][0]))
-    return y_predict, y_predict_labels
