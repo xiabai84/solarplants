@@ -253,7 +253,7 @@ def load_filenames(filenames_csv, skip_headline, exclude_index=4):
 def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4, **kwargs):
 
     options = {
-        'skip_headline': True,
+        'skip_headline': False,
         'horizontal_flip': False,
         'vertical_flip': False,
         'YCbCr': False,
@@ -359,9 +359,10 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4
             images_y[image_versions * i + vertical_flip_index] = images_y[image_versions * i]
             images_x[image_versions * i + vertical_flip_index, :, :, :] = images_x[image_versions * i, ::-1, :, :]
 
-    positive_data = np.sum(images_y)
-    print('{} out of {} with solar panel ({:.1f}%)'.format(positive_data, sample_count,
-                                                           100.*positive_data/sample_count))
+    if sample_count > 1:
+        positive_data = np.sum(images_y)
+        print('{} out of {} with solar panel ({:.1f}%)'.format(positive_data, sample_count,
+                                                               100.*positive_data/sample_count))
     return images_x, images_y
 
 
