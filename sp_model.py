@@ -6,8 +6,11 @@ import numpy as np
 import sp_googlemaps
 import os
 import shutil
+import PIL
 from PIL import Image
 from PIL import ImageFont, ImageDraw
+from vis.visualization import visualize_saliency, overlay
+import imageio
 
 
 def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(64, 64, 64, 64), num_classes=2,
@@ -80,3 +83,30 @@ def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_
             img.save(target_path)
 
     return y_predict, y_predict_labels
+
+
+def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, full_image_size,
+                   layer_idx=-1, filter_indices=0, exclude_index=4):
+    test_img, _ = sp_googlemaps.load_data(filenames_csv, predict_folder, image_size, bool, exclude_index,
+                                          featurewise_center=True,
+                                          featurewise_std_normalization=True)
+
+    vis_img, _ = sp_googlemaps.load_data(filenames_csv, fullsize_folder, full_image_size, bool, exclude_index,
+                                         featurewise_center=False,
+                                         featurewise_std_normalization=False)
+
+    vis_img *= 255.
+
+    filenames = sp_googlemaps.load_filenames(filenames_csv, 0, exclude_index)
+    sp_googlemaps.create_folder_if_not_exists(output_folder)
+    for i, f in enumerate(filenames):
+        filename = f[0]
+        sal = visualize_saliency(model, layer_idx=layer_idx, filter_indices=filter_indices, seed_input=test_img[i, :, :, :])
+        result_filename = os.path.join(output_folder, 'sal_'+filename)
+        overlay_result_filename = os.path.join(output_folder, 'sal_ovl_'+filename)
+        imageio.imwrite(result_filename, sal)
+        if full_image_size != image_size:
+            sal = Image.open(result_filename)
+            sal = sal.resize((full_image_size, full_image_size), resample=PIL.Image.LANCZOS)
+            sal = np.array(sal)[:, :, :3]
+        imageio.imwrite(overlay_result_filename, overlay(sal, vis_img[i, :, :, :], 0.5))
