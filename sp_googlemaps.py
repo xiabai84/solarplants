@@ -241,7 +241,7 @@ class DownloadSession:
         return image_filename
 
 
-def load_filenames(filenames_csv, skip_headline, exclude_index=2):
+def load_filenames(filenames_csv, skip_headline, exclude_index=4):
     first_line_index = 0
     if skip_headline:
         first_line_index = 1
@@ -250,7 +250,7 @@ def load_filenames(filenames_csv, skip_headline, exclude_index=2):
     return filenames
 
 
-def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=2, **kwargs):
+def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4, **kwargs):
 
     options = {
         'skip_headline': True,

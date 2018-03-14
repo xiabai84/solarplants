@@ -4,6 +4,10 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
 import numpy as np
 import sp_googlemaps
+import os
+import shutil
+from PIL import Image
+from PIL import ImageFont, ImageDraw
 
 
 def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(64, 64, 64, 64), num_classes=2,
@@ -36,19 +40,43 @@ def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(
     model.compile(loss=loss_function,
                   optimizer=keras.optimizers.Adam(),
                   metrics=['accuracy'])
+    return model
 
 
-def model_predict(model, filenames_csv, folder, image_size):
-    x_all, y_all = sp_googlemaps.load_data(filenames_csv, folder, image_size,
-                      skip_headline=False,
-                      featurewise_center=True,
-                      featurewise_std_normalization=True)
+def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, label_map, exclude_index=4):
+    x_all, y_all = sp_googlemaps.load_data(filenames_csv, predict_folder, image_size,
+                                           label_map,
+                                           exclude_index,
+                                           skip_headline=False,
+                                           featurewise_center=True,
+                                           featurewise_std_normalization=True)
     y_predict = model.predict(x_all)
     y_predict_labels = np.argmax(y_predict, 1).astype('bool')
 
-    #for i in range(y_predict_labels.shape[0]):
-    #    if y_all[i] and (not y_predict_labels[i]):
-    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_neg', filenames[i][0]))
-    #    if (not y_all[i]) and y_predict_labels[i]:
-    #        shutil.copyfile(os.path.join(fs_path, filenames[i][0]), os.path.join('images/false_pos', filenames[i][0]))
+    filenames = sp_googlemaps.load_filenames(filenames_csv, 0, exclude_index)
+
+    false_neg_folder = os.path.join(output_folder, 'false_neg')
+    sp_googlemaps.create_folder_if_not_exists(false_neg_folder)
+    false_pos_folder = os.path.join(output_folder, 'false_pos')
+    sp_googlemaps.create_folder_if_not_exists(false_pos_folder)
+
+    font = ImageFont.truetype('arialbd', 16)
+
+    for i in range(y_predict_labels.shape[0]):
+        target_path = None
+        if y_all[i] and (not y_predict_labels[i]):
+            target_path = os.path.join(false_neg_folder, filenames[i][0])
+            shutil.copyfile(os.path.join(fullsize_folder, filenames[i][0]),
+                            target_path)
+        if (not y_all[i]) and y_predict_labels[i]:
+            target_path = os.path.join(false_pos_folder, filenames[i][0])
+            shutil.copyfile(os.path.join(fullsize_folder, filenames[i][0]),
+                            target_path)
+        if target_path:
+            img = Image.open(target_path)
+            draw = ImageDraw.Draw(img)
+            draw.text((5, 5), "Neg={:.2f} : Pos={:.2f}".format(y_predict[i][0], y_predict[i][1]),
+                      (255, 0, 255), font=font)
+            img.save(target_path)
+
     return y_predict, y_predict_labels
