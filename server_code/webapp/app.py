@@ -1,6 +1,6 @@
 import io, traceback
 
-from flask import Flask, request, g,  url_for
+from flask import Flask, request, g,  url_for, redirect
 from flask import send_file
 from flask import jsonify
 from flask_mako import MakoTemplates, render_template
@@ -30,7 +30,7 @@ def ml_predict(image):
         prediction = model.predict([image[:, :, 0:3][None, :, :, :]])
     return prediction
 
-@app.route('/prediction/<long>/<lat>')
+@app.route('/predict/<long>/<lat>')
 def predict(long,lat):
     image = Image.open("test.png")
     resized_image = imresize(image, (64, 64)) / 255.0
@@ -39,7 +39,7 @@ def predict(long,lat):
 
 @app.route('/')
 def homepage():
-    return url_for('static', filename='yes.html')
+    return redirect(url_for('static', filename='app.html'))
 
 
 
