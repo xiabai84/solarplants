@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Embed Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+    <style>
+    html, body {
+          height: 100%;
+          width: 100%;
+      }
+
+      .navbar-inverse {
+        background-color: rgba(0,0,0,.7);
+      }
+
+      #map {
+          height: 100%;
+          width: 100%;
+          left: 0;
+          position: relative;
+          top: 0;
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top bg-light">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Data Incubator | Solar</a>
+        </div>
+        <form class="navbar-form" id="eingabe" style="text-align:center">
+          <div class="form-group">
+            <input type="text" id="address" class="form-control" placeholder="Adresse eingeben...">
+          </div>
+          <button type="submit" class="btn btn-default">Suche</button>
+        </form>
+      </div>
+    </nav>
+
+<div id="map"></div>
+
+  </body>
+
+      <script>
+      var map;
+      var geocoder;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 4,
+          center: {lat: -33, lng: 151},
+          disableDefaultUI: true
+        });
+        geocoder = new google.maps.Geocoder();
+      }
+
+      function codeAddress(geocoder, map, address) {
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            map.setCenter(results[0].geometry.location);
+            map.setZoom(18);
+
+            var icon = {
+                url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=18&size=400x400&key=AIzaSyD6NMHMD0M497rw-cda_sKCvAQTb8fsF28", // url
+                scaledSize: new google.maps.Size(500, 500), // scaled size
+                anchor: new google.maps.Point(250, 250)
+            };
+
+
+            var marker = new google.maps.Marker({
+              map: map,
+              position: results[0].geometry.location,
+              icon: icon
+            });
+          } else {
+            alert('Geocoder war nicht erfolgreich weil: ' + status);
+          }
+        });
+      }
+
+      $( "#eingabe" ).submit(function( event ) {
+        event.preventDefault();
+
+        
+
+        codeAddress(geocoder, map, $('#address').val());
+      });
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4&callback=initMap">
+    </script>
+</html>
+
