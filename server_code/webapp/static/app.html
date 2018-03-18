@@ -71,7 +71,7 @@
             map.setZoom(18);
 
             var icon = {
-                url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=18&size=400x400&key=AIzaSyD6NMHMD0M497rw-cda_sKCvAQTb8fsF28", // url
+                url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=18&size=400x400&key=" + GEOCODER_API_KEY, // url
                 scaledSize: new google.maps.Size(500, 500), // scaled size
                 anchor: new google.maps.Point(250, 250)
             };
@@ -97,7 +97,7 @@
       });
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=" + MAPS_API_KEY + "&callback=initMap">
     </script>
 </html>
 
