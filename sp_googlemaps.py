@@ -27,13 +27,10 @@ def create_folder_if_not_exists(folder_path):
 
 
 def address_to_filename(address):
-    address = address.replace('ä', 'ae')
-    address = address.replace('ö', 'oe')
-    address = address.replace('ü', 'ue')
-    address = address.replace('Ä', 'Ae')
-    address = address.replace('Ö', 'Oe')
-    address = address.replace('Ü', 'Ue')
-    address = address.replace('ß', 'ss')
+    umlauts = ['ä', 'ö', 'ü', 'Ä', 'Ö', 'Ü', 'ß']
+    replacements = ['ae', 'oe', 'ue', 'Ae', 'Oe', 'Ue', 'ss']
+    for umlaut, replacement in zip(umlauts, replacements):
+        address = address.replace(umlaut, replacement)
     # Keep only basic english letters a-zA-Z, numbers and whitespaces
     address = re.sub(r'[^a-zA-Z0-9\s]+', '', address)
     return address
