@@ -341,13 +341,19 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4
         images_x[image_versions * i, :, :, :] = image / 255.
         images_y[image_versions * i] = bool(f[1])
 
+    channel_means = np.zeros((3,))
     if options['featurewise_center']:
         for channel in range(3):
+            channel_means[channel] = np.mean(images_x[:, :, :, channel])
             images_x[:, :, :, channel] -= np.mean(images_x[:, :, :, channel])
+    print(channel_means)
 
+    channel_stds = np.zeros((3,))
     if options['featurewise_std_normalization']:
         for channel in range(3):
+            channel_stds[channel] = np.std(images_x[:, :, :, channel])
             images_x[:, :, :, channel] /= np.std(images_x[:, :, :, channel])
+    print(channel_stds)
 
     if options['horizontal_flip']:
         for i in range(len(filenames)):
