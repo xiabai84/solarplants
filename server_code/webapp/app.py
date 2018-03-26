@@ -1,4 +1,5 @@
 import io, traceback
+import os
 
 from flask import Flask, request, g,  url_for, redirect
 from flask import send_file
@@ -11,6 +12,8 @@ from scipy.misc import imresize
 import numpy as np
 from keras.models import load_model
 import tensorflow as tf
+
+import urllib, cStringIO
 
 app = Flask(__name__, instance_relative_config=True)
 # For Plim templates
@@ -30,9 +33,16 @@ def ml_predict(image):
         prediction = model.predict([image[:, :, 0:3][None, :, :, :]])
     return prediction
 
-@app.route('/predict/<long>/<lat>')
-def predict(long,lat):
-    image = Image.open("test.png")
+@app.route('/predict/<lo>/<lat>')
+def predict(lo,lat):
+    thumb_size = 64
+    size = 300
+    zoom = 20 
+    #url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + str(lo) + "," + str(lat) + "&zoom=" + str(zoom) + "&size=" + str(size) + "x" + str(size) + "&key=" + str(os.environ['MAPS_API_KEY'])
+        #url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + str(lo) + "," + str(lat) + "&zoom=" + str(zoom) + "&size=" + str(size) + "x" + str(size) + "&key=" + str(os.environ['MAPS_API_KEY'])
+    url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&format=png32&center=" + str(lo) + "," + str(lat) + "&zoom=20&size=300x300&key=" + str(os.environ['MAPS_API_KEY']) 
+    file = cStringIO.StringIO(urllib.urlopen(url).read())
+    image = Image.open(file)
     resized_image = imresize(image, (64, 64)) / 255.0
     result =  ml_predict(resized_image)
     return jsonify({'result': result.tolist() })

@@ -33,10 +33,10 @@
   <body>
 
     <!-- Fixed navbar -->
-    <nav class="navbar navbar-default navbar-fixed-top bg-light">
+    <nav class="navbar navbar-default navbar-fixed-top bg-light" id="nav_bar">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">Data Incubator | Solar</a>
+          <a class="navbar-brand" href="#" id="title">Data Incubator | Solar</a>
         </div>
         <form class="navbar-form" id="eingabe" style="text-align:center">
           <div class="form-group">
@@ -54,30 +54,55 @@
       <script>
       var map;
       var geocoder;
+      var marker;
+      var size = 300;
+      var zoom = 20;
 
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 4,
-          center: {lat: -33, lng: 151},
+          zoom: 20,
+          center: {lat: 48.1482884, lng: 11.5780396}, 
           disableDefaultUI: true
         });
         geocoder = new google.maps.Geocoder();
       }
 
       function codeAddress(geocoder, map, address) {
+        var navbar = $('#nav_bar');
+        var title = $('#title');
+        navbar.css("background-color", "#f8f8f8");
+        title.text("Data Incubator | Solar");
+
+
         geocoder.geocode({'address': address}, function(results, status) {
+
+          $.get( "/predict/" + results[0].geometry.location.lat() + "/" + results[0].geometry.location.lng() , function( data ) {
+            var negative = data.result[0][0];
+            var positive = data.result[0][1];
+            if(negative < positive){
+              navbar.css("background-color", "#2ecc71");
+            }else{
+              navbar.css("background-color", "#e74c3c");
+            }
+
+            title.text("Positive:" + positive + ", Negative:" + negative);
+          });
+
           if (status === 'OK') {
             map.setCenter(results[0].geometry.location);
             map.setZoom(18);
 
             var icon = {
-                url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=18&size=400x400&key=" + GEOCODER_API_KEY, // url
-                scaledSize: new google.maps.Size(500, 500), // scaled size
-                anchor: new google.maps.Point(250, 250)
+                url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=" + zoom +"&size=" + size + "x" + size + "&key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4", // url
+                scaledSize: new google.maps.Size(300, 300), // scaled size
+                anchor: new google.maps.Point(150, 150)
             };
 
+            if(marker != null){
+              marker.setMap(null); 
+            };
 
-            var marker = new google.maps.Marker({
+            marker = new google.maps.Marker({
               map: map,
               position: results[0].geometry.location,
               icon: icon
@@ -97,7 +122,7 @@
       });
     </script>
     <script async defer
-    src="https://maps.googleapis.com/maps/api/js?key=" + MAPS_API_KEY + "&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4&callback=initMap">
     </script>
 </html>
 
