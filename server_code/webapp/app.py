@@ -44,6 +44,11 @@ def predict(lo,lat):
     file = cStringIO.StringIO(urllib.urlopen(url).read())
     image = Image.open(file)
     resized_image = imresize(image, (64, 64)) / 255.0
+    channel_means = [0.30500001, 0.30549607, 0.26879644]
+    channel_stds = [0.17779149, 0.16334727, 0.14763094]
+    for channel in range(3):
+        image[:, :, channel] -= channel_means[channel]
+        image[:, :, channel] /= channel_stds[channel]
     result =  ml_predict(resized_image)
     return jsonify({'result': result.tolist() })
 
