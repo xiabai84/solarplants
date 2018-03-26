@@ -46,7 +46,29 @@ def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(
     return model
 
 
-def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, label_map, exclude_index=4):
+def precision_recall(y_pred, y_label):
+    pos = np.sum(y_label).astype(int)
+    neg = y_label.shape[0] - pos
+    tp = sum([1 for pred, true in zip(y_pred, y_label) if pred == true == 1])
+    fp = sum([1 for pred, true in zip(y_pred, y_label) if pred != true and true == 0])
+    tn = sum([1 for pred, true in zip(y_pred, y_label) if pred == true == 0])
+    fn = sum([1 for pred, true in zip(y_pred, y_label) if pred != true and true == 1])
+
+    precision = float(tp)/(tp+fp)
+    recall = float(tp)/(tp+fn)
+    f1_score = 2/(1/recall + 1/precision)
+
+    print('''True positive: {}
+True negative: {}
+False positive: {}
+False negative: {}
+Precision: {}
+Recall: {}
+F1-Score: {}'''.format(tp, tn, fp, fn, precision, recall, f1_score))
+
+
+def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, label_map,
+                  exclude_index=4, positive_bias=None):
     x_all, y_all = sp_googlemaps.load_data(filenames_csv, predict_folder, image_size,
                                            label_map,
                                            exclude_index,
@@ -54,10 +76,14 @@ def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_
                                            featurewise_center=True,
                                            featurewise_std_normalization=True)
     y_predict = model.predict(x_all)
+    if positive_bias:
+        y_predict[:, 0] -= positive_bias
+        y_predict[:, 1] += positive_bias
     y_predict_labels = np.argmax(y_predict, 1).astype('bool')
 
     filenames = sp_googlemaps.load_filenames(filenames_csv, 0, exclude_index)
 
+    sp_googlemaps.create_folder_if_not_exists(output_folder)
     false_neg_folder = os.path.join(output_folder, 'false_neg')
     sp_googlemaps.create_folder_if_not_exists(false_neg_folder)
     false_pos_folder = os.path.join(output_folder, 'false_pos')
@@ -82,7 +108,8 @@ def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_
                       (255, 0, 255), font=font)
             img.save(target_path)
 
-    return y_predict, y_predict_labels
+    precision_recall(y_predict_labels, y_all)
+    return y_predict, y_predict_labels, y_all
 
 
 def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, full_image_size,
