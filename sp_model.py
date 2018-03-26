@@ -47,16 +47,14 @@ def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(
 
 
 def precision_recall(y_pred, y_label):
-    pos = np.sum(y_label).astype(int)
-    neg = y_label.shape[0] - pos
     tp = sum([1 for pred, true in zip(y_pred, y_label) if pred == true == 1])
     fp = sum([1 for pred, true in zip(y_pred, y_label) if pred != true and true == 0])
     tn = sum([1 for pred, true in zip(y_pred, y_label) if pred == true == 0])
     fn = sum([1 for pred, true in zip(y_pred, y_label) if pred != true and true == 1])
 
-    precision = float(tp)/(tp+fp)
-    recall = float(tp)/(tp+fn)
-    f1_score = 2/(1/recall + 1/precision)
+    precision = float(tp) / (tp + fp)
+    recall = float(tp) / (tp + fn)
+    f1_score = 2. / (1. / recall + 1. / precision)
 
     print('''True positive: {}
 True negative: {}
@@ -75,11 +73,13 @@ def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_
                                            skip_headline=False,
                                            featurewise_center=True,
                                            featurewise_std_normalization=True)
+
     y_predict = model.predict(x_all)
+    y_predict_with_bias = y_predict
     if positive_bias:
-        y_predict[:, 0] -= positive_bias
-        y_predict[:, 1] += positive_bias
-    y_predict_labels = np.argmax(y_predict, 1).astype('bool')
+        y_predict_with_bias[:, 0] -= positive_bias
+        y_predict_with_bias[:, 1] += positive_bias
+    y_predict_labels = np.argmax(y_predict_with_bias, 1).astype('bool')
 
     filenames = sp_googlemaps.load_filenames(filenames_csv, 0, exclude_index)
 
@@ -113,10 +113,11 @@ def model_predict(model, filenames_csv, predict_folder, fullsize_folder, output_
 
 
 def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output_folder, image_size, full_image_size,
-                   layer_idx=-1, filter_indices=0, exclude_index=4):
-    test_img, _ = sp_googlemaps.load_data(filenames_csv, predict_folder, image_size, bool, exclude_index,
-                                          featurewise_center=True,
-                                          featurewise_std_normalization=True)
+                   layer_idx=-1, filter_indices=0, exclude_index=4, save_sal=False, save_overlay=True,
+                   print_prediction=True):
+    test_img, test_labels = sp_googlemaps.load_data(filenames_csv, predict_folder, image_size, bool, exclude_index,
+                                                    featurewise_center=True,
+                                                    featurewise_std_normalization=True)
 
     vis_img, _ = sp_googlemaps.load_data(filenames_csv, fullsize_folder, full_image_size, bool, exclude_index,
                                          featurewise_center=False,
@@ -126,14 +127,30 @@ def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output
 
     filenames = sp_googlemaps.load_filenames(filenames_csv, 0, exclude_index)
     sp_googlemaps.create_folder_if_not_exists(output_folder)
+    if print_prediction:
+        y_predict = model.predict(test_img)
+    font = ImageFont.truetype('arialbd', 16)
+
     for i, f in enumerate(filenames):
         filename = f[0]
-        sal = visualize_saliency(model, layer_idx=layer_idx, filter_indices=filter_indices, seed_input=test_img[i, :, :, :])
-        result_filename = os.path.join(output_folder, 'sal_'+filename)
-        overlay_result_filename = os.path.join(output_folder, 'sal_ovl_'+filename)
+        result_filename = os.path.join(output_folder, 'sal_' + filename)
+        overlay_result_filename = os.path.join(output_folder, 'sal_ovl_' + filename)
+        sal = visualize_saliency(model, layer_idx=layer_idx, filter_indices=filter_indices,
+                                 seed_input=test_img[i, :, :, :])
         imageio.imwrite(result_filename, sal)
-        if full_image_size != image_size:
-            sal = Image.open(result_filename)
-            sal = sal.resize((full_image_size, full_image_size), resample=PIL.Image.LANCZOS)
-            sal = np.array(sal)[:, :, :3]
-        imageio.imwrite(overlay_result_filename, overlay(sal, vis_img[i, :, :, :], 0.5))
+        if save_overlay:
+            if full_image_size != image_size:
+                sal = Image.open(result_filename)
+                sal = sal.resize((full_image_size, full_image_size), resample=PIL.Image.LANCZOS)
+                sal = np.array(sal)[:, :, :3]
+            imageio.imwrite(overlay_result_filename, overlay(sal, vis_img[i, :, :, :], 0.5))
+            if print_prediction:
+                img = Image.open(overlay_result_filename)
+                draw = ImageDraw.Draw(img)
+                draw.text((5, 5),
+                          "Neg={:.2f} : Pos={:.2f} (lbl: {})".format(y_predict[i][0], y_predict[i][1],
+                                                                     test_labels[i]),
+                          (255, 0, 255), font=font)
+                img.save(overlay_result_filename)
+        if not save_sal:
+            os.remove(result_filename)
