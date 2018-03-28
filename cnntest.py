@@ -56,6 +56,7 @@ x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'D:\Data\D
                                        label_map,
                                        4,  # The "uncertain"/"exclude" label
                                        equalize_labels=True,
+                                       seed=seed,
                                        skip_headline=False,
                                        horizontal_flip=False,
                                        vertical_flip=False,
