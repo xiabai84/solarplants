@@ -14,7 +14,7 @@ import hashlib
 import os
 import os.path
 from multiprocessing import Pool
-from random import random
+import random
 
 BASE_URL = 'https://maps.googleapis.com/maps/api/staticmap?'
 BASE_URL_GEOCODE = 'https://maps.googleapis.com/maps/api/geocode/json?'
@@ -257,6 +257,7 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4
         'featurewise_center': False,
         'featurewise_std_normalization': False,
         'equalize_labels': False,
+        'seed': None,
     }
     options.update(kwargs)
 
@@ -272,6 +273,8 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4
                 true_count += 1
             else:
                 false_count += 1
+        if options['seed']:
+            random.seed(options['seed'])
         if true_count != false_count:
             if true_count > false_count:
                 pass_value = False
@@ -281,7 +284,7 @@ def load_data(filenames_csv, folder, image_size, label_map=bool, exclude_index=4
                 pass_probability = float(true_count) / float(false_count)
             print("Equalization: throwing out {:.1f}% of pictures that are not '{}'".format(100.*(1.-pass_probability), pass_value))
             # print(len(filenames))
-            filenames = [f for f in filenames if f[1] == pass_value or random() <= pass_probability]
+            filenames = [f for f in filenames if f[1] == pass_value or random.random() <= pass_probability]
             print("Total number of samples reduced from {} to {}".format(sample_count, len(filenames)))
             sample_count = len(filenames)
             # print(len(filenames))

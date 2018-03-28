@@ -34,17 +34,14 @@ dropout_ratio = 0.3
 
 # Have an existing weights file? Load before compiling!
 weight_file = None
+seed = 123456789
 #weight_file = '2018-03-13_16-32 cnntest_weights.h5'
 
 model = sp_model.build_model(input_shape, dropout_ratio, (64, 64, 64, 64), num_classes,
-                             loss_function, (256,), weight_file)
+                             loss_function, (256,), weight_file, seed)
 
 # This number does not change any calculation, just the labels in the plots
 resume_from_epoch = 0
-
-model.compile(loss=loss_function,
-              optimizer=keras.optimizers.Adam(),
-              metrics=['accuracy'])
 
 
 def label_map(image_label):
@@ -54,7 +51,7 @@ def label_map(image_label):
         return False
 
 
-x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'images/dropbox/thumbs',
+x_all, y_all = sp_googlemaps.load_data('doc/labels/label_final.csv', r'D:\Data\Dropbox (datareply)\imagepool\thumbs',
                                        image_pixels,
                                        label_map,
                                        4,  # The "uncertain"/"exclude" label
@@ -74,7 +71,8 @@ x_test = None
 y_test = None
 test_samples = 0
 if test_ratio > 0:
-    x_train, x_test, y_train, y_test = train_test_split(x_all, y_all, test_size=test_ratio)
+    x_train, x_test, y_train, y_test = train_test_split(x_all, y_all, test_size=test_ratio,
+                                                        shuffle=True, random_state=seed)
     test_samples = y_test.shape[0]
 else:
     x_train = x_all
@@ -84,7 +82,8 @@ x_validation = None
 y_validation = None
 validation_samples = 0
 if validation_ratio > 0:
-    x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=validation_ratio)
+    x_train, x_validation, y_train, y_validation = train_test_split(x_train, y_train, test_size=validation_ratio,
+                                                                    shuffle=True, random_state=seed)
     validation_samples = y_validation.shape[0]
 
 # convert the data to the right type
@@ -122,11 +121,11 @@ datagen = ImageDataGenerator(
 )
 
 # Use fit to get proper featurewise_center and featurewise_std_normalization
-datagen.fit(x_train)
+datagen.fit(x_train, seed=seed)
 # Generate and save n*32 sample images
 flow_countdown = 0
 if flow_countdown:
-    for x_gen, y_gen in datagen.flow(x_train, y_train, save_to_dir='images/kerasgenerated', batch_size=32):
+    for x_gen, y_gen in datagen.flow(x_train, y_train, save_to_dir='images/kerasgenerated', batch_size=32, seed=seed):
         flow_countdown -= 1
         if not flow_countdown:
             break
@@ -139,7 +138,7 @@ datagen_valid = ImageDataGenerator(
     #height_shift_range=0.1,
     #horizontal_flip=True,
 )
-datagen_valid.fit(x_validation)
+datagen_valid.fit(x_validation, seed=seed)
 
 now = datetime.datetime.now()
 model_filename = '{:0>4}-{:0>2}-{:0>2}_{:0>2}-{:0>2} cnntest' \
@@ -150,9 +149,10 @@ checkpoint_filepath = model_filename + "_weights{epoch:03d}-{loss:.4f}.h5"
 checkpoint = ModelCheckpoint(checkpoint_filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
-fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size),
+fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batch_size, seed=seed),
                                   steps_per_epoch=x_train.shape[0] // batch_size, epochs=epochs+resume_from_epoch,
-                                  validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size),
+                                  validation_data=datagen_valid.flow(x_validation, y_validation, batch_size=batch_size,
+                                                                     seed=seed),
                                   validation_steps=x_validation.shape[0]//batch_size,
                                   verbose=2,
                                   initial_epoch=resume_from_epoch,
@@ -173,7 +173,8 @@ fit_history = model.fit_generator(datagen.flow(x_train, y_train, batch_size=batc
 model.save(model_filename + '_weights.h5')
 
 with open(model_filename + '_layers.txt', 'w') as layer_file:
-    layer_file.write(datagen.__class__.__name__ + '\n' + str(datagen.__dict__) + '\n\n\n')
+    layer_file.write(datagen.__class__.__name__ + '\n' + str(datagen.__dict__) + '\n'
+                     + 'seed={}\n\n\n'.format(seed))
     for layer in model.layers:
         config = layer.get_config()
         layer_file.write(
