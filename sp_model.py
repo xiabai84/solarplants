@@ -2,6 +2,7 @@ import keras
 from keras.layers import Dense, Flatten, Dropout
 from keras.layers import Conv2D, MaxPooling2D
 from keras.models import Sequential
+import keras.initializers
 import numpy as np
 import sp_googlemaps
 import os
@@ -15,26 +16,32 @@ import imageio
 
 def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(64, 64, 64, 64), num_classes=2,
                 loss_function=keras.losses.categorical_crossentropy,
-                dense_layers=(256,), weights_file=None):
+                dense_layers=(256,), weights_file=None, seed=None):
+    my_kernel_initializer = 'glorot_uniform'
+    if seed is not None:
+        my_kernel_initializer = keras.initializers.glorot_uniform(seed)
+
     model = Sequential()
     model.add(Conv2D(convolution_layers[0], kernel_size=(3, 3),
                      padding='same',
                      activation='relu',
-                     input_shape=input_shape))
+                     input_shape=input_shape,
+                     kernel_initializer=my_kernel_initializer))
     if dropout_ratio > 0:
-        model.add(Dropout(dropout_ratio))
+        model.add(Dropout(dropout_ratio, seed=seed))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     for kernel_count in convolution_layers[1:]:
-        model.add(Conv2D(kernel_count, (3, 3), activation='relu', padding='same'))
+        model.add(Conv2D(kernel_count, (3, 3), activation='relu', padding='same',
+                         kernel_initializer=my_kernel_initializer))
         if dropout_ratio > 0:
-            model.add(Dropout(dropout_ratio))
+            model.add(Dropout(dropout_ratio, seed=seed))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
     for num_dense in dense_layers:
-        model.add(Dense(num_dense, activation='relu'))
-    model.add(Dense(num_classes, activation='softmax'))
+        model.add(Dense(num_dense, activation='relu', kernel_initializer=my_kernel_initializer))
+    model.add(Dense(num_classes, activation='softmax', kernel_initializer=my_kernel_initializer))
 
     # Have an existing weights file? Load before compiling!
     if weights_file:
