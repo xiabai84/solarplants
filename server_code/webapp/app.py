@@ -40,10 +40,15 @@ def predict(lo,lat):
     zoom = 20 
     #url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + str(lo) + "," + str(lat) + "&zoom=" + str(zoom) + "&size=" + str(size) + "x" + str(size) + "&key=" + str(os.environ['MAPS_API_KEY'])
         #url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + str(lo) + "," + str(lat) + "&zoom=" + str(zoom) + "&size=" + str(size) + "x" + str(size) + "&key=" + str(os.environ['MAPS_API_KEY'])
-    url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&format=png32&center=" + str(lo) + "," + str(lat) + "&zoom=20&size=300x300&key=" + str(os.environ['MAPS_API_KEY']) 
+    url = "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&format=png32&center=" + str(lo) + "," + str(lat) + "&zoom=20&size=300x300&key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4"
     file = cStringIO.StringIO(urllib.urlopen(url).read())
     image = Image.open(file)
     resized_image = imresize(image, (64, 64)) / 255.0
+    channel_means = [0.30500001, 0.30549607, 0.26879644]
+    channel_stds = [0.17779149, 0.16334727, 0.14763094]
+    for channel in range(3):
+        resized_image[:, :, channel] -= channel_means[channel]
+        resized_image[:, :, channel] /= channel_stds[channel]
     result =  ml_predict(resized_image)
     return jsonify({'result': result.tolist() })
 

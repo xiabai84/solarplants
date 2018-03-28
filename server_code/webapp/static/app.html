@@ -36,7 +36,7 @@
     <nav class="navbar navbar-default navbar-fixed-top bg-light" id="nav_bar">
       <div class="container">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#" id="title">Data Incubator | Solar</a>
+          <a class="navbar-brand" href="#" id="title" style="color:black">Data Incubator | Solar</a>
         </div>
         <form class="navbar-form" id="eingabe" style="text-align:center">
           <div class="form-group">
@@ -62,7 +62,8 @@
         map = new google.maps.Map(document.getElementById('map'), {
           zoom: 20,
           center: {lat: 48.1482884, lng: 11.5780396}, 
-          disableDefaultUI: true
+          disableDefaultUI: true,
+          mapTypeId: 'satellite'
         });
         geocoder = new google.maps.Geocoder();
       }
@@ -80,17 +81,17 @@
             var negative = data.result[0][0];
             var positive = data.result[0][1];
             if(negative < positive){
+              title.text("Solaranlage vorhanden (" + Math.round(positive * 100, 2) +  "% sicher)");
               navbar.css("background-color", "#2ecc71");
             }else{
+              title.text("Keine Solaranlage vorhanden (" + Math.round(negative * 100, 2) +  "% sicher)");
               navbar.css("background-color", "#e74c3c");
             }
-
-            title.text("Positive:" + positive + ", Negative:" + negative);
           });
 
           if (status === 'OK') {
             map.setCenter(results[0].geometry.location);
-            map.setZoom(18);
+            map.setZoom(20);
 
             var icon = {
                 url: "https://maps.googleapis.com/maps/api/staticmap?maptype=satellite&center=" + results[0].geometry.location.lat() + "," + results[0].geometry.location.lng() +"&zoom=" + zoom +"&size=" + size + "x" + size + "&key=AIzaSyA91yDb1_0u2a9_l-yzVgcqvtJg_RBbgl4", // url
