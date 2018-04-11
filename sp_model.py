@@ -11,7 +11,16 @@ import PIL
 from PIL import Image
 from PIL import ImageFont, ImageDraw
 from vis.visualization import visualize_saliency, overlay
+import matplotlib.cm as cm
 import imageio
+
+#ideas from Dima:
+#batch normalization
+#transfer learning
+
+
+
+
 
 
 def build_model(input_shape=(64, 64, 3), dropout_ratio=0.3, convolution_layers=(64, 64, 64, 64), num_classes=2,
@@ -154,6 +163,8 @@ def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output
         y_predict = model.predict(test_img)
     font = ImageFont.truetype('arialbd', 16)
 
+    colormaps = {'viridis': cm.viridis, 'plasma': cm.plasma}
+
     for i, f in enumerate(filenames):
         filename = f[0]
         result_filename = os.path.join(output_folder, 'sal_' + filename)
@@ -163,22 +174,30 @@ def model_saliency(model, filenames_csv, predict_folder, fullsize_folder, output
                 and (not save_sal or os.path.exists(result_filename))
         ):
             continue
-        sal = visualize_saliency(model, layer_idx=layer_idx, filter_indices=filter_indices,
-                                 seed_input=test_img[i, :, :, :])
-        imageio.imwrite(result_filename, sal)
-        if save_overlay:
-            if full_image_size != image_size:
-                sal = Image.open(result_filename)
-                sal = sal.resize((full_image_size, full_image_size), resample=PIL.Image.LANCZOS)
-                sal = np.array(sal)[:, :, :3]
-            imageio.imwrite(overlay_result_filename, overlay(sal, vis_img[i, :, :, :], 0.5))
-            if print_prediction:
-                img = Image.open(overlay_result_filename)
-                draw = ImageDraw.Draw(img)
-                draw.text((5, 5),
-                          "Neg={:.2f} : Pos={:.2f} (lbl: {})".format(y_predict[i][0], y_predict[i][1],
-                                                                     test_labels[i]),
-                          (255, 0, 255), font=font)
-                img.save(overlay_result_filename)
-        if not save_sal:
-            os.remove(result_filename)
+        sal_raw = visualize_saliency(model, layer_idx=layer_idx, filter_indices=filter_indices,
+                                     seed_input=test_img[i, :, :, :])
+        for cm_name, cm_f in colormaps.items():
+            sal = np.uint8(cm_f(sal_raw)[..., :3] * 255)
+            filename_no_type = filename[:-4]
+            result_filename = os.path.join(output_folder, filename_no_type + '_sal_' + cm_name + '.png')
+            overlay_result_filename = os.path.join(output_folder, filename_no_type + '_sal_' + cm_name + '_ovl.png')
+            imageio.imwrite(result_filename, sal)
+            if save_overlay:
+                if full_image_size != image_size:
+                    sal = Image.open(result_filename)
+                    sal = sal.resize((full_image_size, full_image_size), resample=PIL.Image.LANCZOS)
+                    sal = np.array(sal)[:, :, :3]
+                for al in range(5):
+                    alpha = 0.5 + 0.1 * float(al)
+                    overlay_result_filename = os.path.join(output_folder, filename_no_type + f'_salalpha{al}_' + cm_name + '_ovl.png')
+                    imageio.imwrite(overlay_result_filename, overlay(sal, vis_img[i, :, :, :], alpha))
+                    if print_prediction:
+                        img = Image.open(overlay_result_filename)
+                        draw = ImageDraw.Draw(img)
+                        draw.text((5, 5),
+                                  "Neg={:.2f} : Pos={:.2f} (lbl: {})".format(y_predict[i][0], y_predict[i][1],
+                                                                             test_labels[i]),
+                                  (255, 0, 255), font=font)
+                        img.save(overlay_result_filename)
+            if not save_sal:
+                os.remove(result_filename)
